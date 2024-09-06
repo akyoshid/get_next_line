@@ -6,7 +6,7 @@
 /*   By: akyoshid <akyoshid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/02 22:57:02 by akyoshid          #+#    #+#             */
-/*   Updated: 2024/09/06 04:42:42 by akyoshid         ###   ########.fr       */
+/*   Updated: 2024/09/06 19:09:08 by akyoshid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,12 +19,6 @@
 # ifndef BUFFER_SIZE
 #  define BUFFER_SIZE 42
 # endif
-
-typedef struct s_fdlst
-{
-	int		fd;
-	char	*leftover;
-}	t_fdlst;
 
 char	*get_next_line(int fd);
 
