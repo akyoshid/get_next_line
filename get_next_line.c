@@ -6,27 +6,48 @@
 /*   By: akyoshid <akyoshid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/02 22:57:05 by akyoshid          #+#    #+#             */
-/*   Updated: 2024/09/07 17:30:38 by akyoshid         ###   ########.fr       */
+/*   Updated: 2024/09/07 21:56:10 by akyoshid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
+// Previous version
 // === RETURN VALUES ===
 // Return a pointer to the first occurrence of '\n' in s.
 // If there is no '\n', return a pointer to the null terminator in s.
 // If s is NULL, return NULL.
-char	*gnl_strchr(char *s)
+// char	*gnl_strchr(char *s)
+// {
+// 	if (s == NULL)
+// 		return (NULL);
+// 	while (*s != '\0')
+// 	{
+// 		if (*s == '\n')
+// 			return (s);
+// 		s++;
+// 	}
+// 	return (s);
+// }
+
+// === RETURN VALUES ===
+// Return the index of the first occurrence of '\n' in s.
+// If there is no '\n', return -1.
+// If s is NULL, return -1.
+size_t	find_newline_index(char *s)
 {
+	size_t	i;
+
 	if (s == NULL)
-		return (NULL);
-	while (*s != '\0')
+		return (-1);
+	i = 0;
+	while (s[i] != '\0')
 	{
-		if (*s == '\n')
-			return (s);
+		if (s[i] == '\n')
+			return (i);
 		s++;
 	}
-	return (s);
+	return (-1);
 }
 
 // *leftover_pに改行があるかを確認し、改行がなければ、改行が見つかるまでreadし続ける
@@ -99,58 +120,66 @@ char	*gnl_strjoin(char const *s1, char const *s2)
 	free(s2);
 	return (buff);
 }
-// leftoverがNULLの時は、呼び出しもとの関数が終了しているはずなので、想定しない
-// lastは必ず
-// つまり、leftoverには必ず文字列があり、lastも'\n'か'\0'を指している。
-char	*gnl_split(char **leftover_p, char *last)
+
+// === RETURN VALUE ===
+// Return a string that extracts from leftover to the first '\n'.
+// (The string is null-terminated.)
+// Also, put the remaining string after the first '\n'
+// into the pointer variable leftover of the calling function
+// through the double pointer argument.
+// leftoverは確実に
+// - NULLではない。
+// - 改行文字が含まれている。
+char	*gnl_split(char **leftover_p)
 {
 	char	*line;
 	size_t	i;
 
-	if (*last == '\n')
-
-	line = (char *)malloc(last - *leftover_p);
+	line = (char *)malloc((find_newline_index(*leftover_p) + 2) * sizeof(char));
 	if (line == NULL)
 		return (NULL);
 	i = 0;
-	while (leftover_p[i] != last)
+	while (*leftover_p[i] != '\n')
 	{
-		line[i]
+		line[i] = *leftover_p[i];
+		i++;
+	}
+	line[i] = '\n';
+	line[i + 1] = '\0';
+// leftover NULL終端保証されてるか確認する！！！
+	return (line);
 }
 
-// 1. 初めてfdを読むとき = (leftover == NULL)のとき
-// 2. 一度読んだfdを読む時 = (leftover != NULL)のとき
-
-// 1. 
 char	*get_next_line(int fd)
 {
 	static char	*leftover;
-	char		*last;
 	char		*read_buff;
 	ssize_t		read_rv;
 
 	if (fd < 0)
 		return (NULL);
-	// leftoverから改行文字を探して、lastで指す。もしなければ、新しくreadして、leftoverに付け足し、もう一度改行文字を探す。
+	// leftoverから改行文字を探す。
+	// 改行文字があれば、抜ける。
+	// 改行文字が無ければ、新しくreadし、leftoverにstrjoinし、再度改行文字を探す。
 	while (1)
 	{
-		last = gnl_strchr(leftover);
-		if (*last = '\n') // lastが改行文字、つまりleftoverに改行文字が含まれている時のみ、breakし、次に行く。
+		if (find_newline_index(leftover) != -1) // leftoverに改行文字があれば、breakし、次に行く。
 			break ;
 		read_buff = (char *)malloc(BUFFER_SIZE + 1);
 		if (read_buff == NULL)
 			return (NULL);
 		read_rv = read(fd, read_buff, BUFFER_SIZE);
-		if (read_rv == -1 || (read_rv == 0 && leftover == NULL)) //read失敗、もしくはreadするものがなく、leftoverもない場合
+		if (read_rv == -1 || (read_rv == 0 && leftover == NULL)) //read失敗 || readするものがなくleftoverもない
 			return (NULL);
-		if (read_rv == 0) // readするものがなかったけど、('\n'は含まれていない)leftoverはある場合
+		if (read_rv == 0) // readするものがないが、('\n'は含まれていない)leftoverはある場合
 			return (leftover);
 		read_buff[read_rv] = '\0';
 		leftover = gnl_strjoin(leftover, read_buff);
 		if (leftover == NULL)
 			return (NULL);
 	}
+	// ここには、必ず改行文字が含まれたleftoverが来ている。
 	// splitは、leftoverから、改行文字で切って、lineと新leftoverに分ける。
-	gnl_split(&leftover, last);
+	gnl_split(&leftover);
 	// gnl_splitで、malloc失敗した場合の処理
 }
