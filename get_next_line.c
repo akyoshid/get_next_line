@@ -6,23 +6,27 @@
 /*   By: akyoshid <akyoshid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/02 22:57:05 by akyoshid          #+#    #+#             */
-/*   Updated: 2024/09/07 16:35:56 by akyoshid         ###   ########.fr       */
+/*   Updated: 2024/09/07 16:58:12 by akyoshid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-char	*ft_strchr_eol(char *str)
+// === RETURN VALUES ===
+// Return a pointer to the first occurrence of '\n' in s.
+// If there is no '\n', return a pointer to the null terminator in s.
+// If s is NULL, return NULL.
+char	*gnl_strchr(char *s)
 {
-	if (str == NULL)
+	if (s == NULL)
 		return (NULL);
-	while (*str != '\0')
+	while (*s != '\0')
 	{
-		if (*str == '\n')
-			return (str);
-		str++;
+		if (*s == '\n')
+			return (s);
+		s++;
 	}
-	return (str);
+	return (s);
 }
 
 // *leftover_pに改行があるかを確認し、改行がなければ、改行が見つかるまでreadし続ける
@@ -96,7 +100,10 @@ char	*gnl_strjoin(char const *s1, char const *s2)
 	return (buff);
 }
 
-char	*gnl_split(char *leftover, char *last_p, 
+char	*gnl_split(char *leftover, char *last_p)
+{
+
+}
 
 // 1. 初めてfdを読むとき = (leftover == NULL)のとき
 // 2. 一度読んだfdを読む時 = (leftover != NULL)のとき
@@ -114,7 +121,7 @@ char	*get_next_line(int fd)
 	// leftoverから改行文字を探して、last_pで指す。もしなければ、新しくreadして、leftoverに付け足し、もう一度改行文字を探す。
 	while (1)
 	{
-		last_p = ft_strchr_eol(leftover);
+		last_p = gnl_strchr(leftover);
 		if (*last_p = '\n')
 			break ;
 		read_buff = (char *)malloc(BUFFER_SIZE + 1);
