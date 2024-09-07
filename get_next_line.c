@@ -6,7 +6,7 @@
 /*   By: akyoshid <akyoshid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/02 22:57:05 by akyoshid          #+#    #+#             */
-/*   Updated: 2024/09/07 16:58:12 by akyoshid         ###   ########.fr       */
+/*   Updated: 2024/09/07 17:30:38 by akyoshid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,10 +99,23 @@ char	*gnl_strjoin(char const *s1, char const *s2)
 	free(s2);
 	return (buff);
 }
-
-char	*gnl_split(char *leftover, char *last_p)
+// leftoverがNULLの時は、呼び出しもとの関数が終了しているはずなので、想定しない
+// lastは必ず
+// つまり、leftoverには必ず文字列があり、lastも'\n'か'\0'を指している。
+char	*gnl_split(char **leftover_p, char *last)
 {
+	char	*line;
+	size_t	i;
 
+	if (*last == '\n')
+
+	line = (char *)malloc(last - *leftover_p);
+	if (line == NULL)
+		return (NULL);
+	i = 0;
+	while (leftover_p[i] != last)
+	{
+		line[i]
 }
 
 // 1. 初めてfdを読むとき = (leftover == NULL)のとき
@@ -112,31 +125,32 @@ char	*gnl_split(char *leftover, char *last_p)
 char	*get_next_line(int fd)
 {
 	static char	*leftover;
-	char		*last_p;
+	char		*last;
 	char		*read_buff;
 	ssize_t		read_rv;
 
 	if (fd < 0)
 		return (NULL);
-	// leftoverから改行文字を探して、last_pで指す。もしなければ、新しくreadして、leftoverに付け足し、もう一度改行文字を探す。
+	// leftoverから改行文字を探して、lastで指す。もしなければ、新しくreadして、leftoverに付け足し、もう一度改行文字を探す。
 	while (1)
 	{
-		last_p = gnl_strchr(leftover);
-		if (*last_p = '\n')
+		last = gnl_strchr(leftover);
+		if (*last = '\n') // lastが改行文字、つまりleftoverに改行文字が含まれている時のみ、breakし、次に行く。
 			break ;
 		read_buff = (char *)malloc(BUFFER_SIZE + 1);
 		if (read_buff == NULL)
 			return (NULL);
 		read_rv = read(fd, read_buff, BUFFER_SIZE);
-		if (read_rv == 0) //読むものがなくて、さらにleftoverもなかったらどうする？
-			break ;
-		if (read_rv == -1)
+		if (read_rv == -1 || (read_rv == 0 && leftover == NULL)) //read失敗、もしくはreadするものがなく、leftoverもない場合
 			return (NULL);
+		if (read_rv == 0) // readするものがなかったけど、('\n'は含まれていない)leftoverはある場合
+			return (leftover);
 		read_buff[read_rv] = '\0';
 		leftover = gnl_strjoin(leftover, read_buff);
 		if (leftover == NULL)
 			return (NULL);
 	}
-	// 改行文字でsplit
-	gnl_split
+	// splitは、leftoverから、改行文字で切って、lineと新leftoverに分ける。
+	gnl_split(&leftover, last);
+	// gnl_splitで、malloc失敗した場合の処理
 }
