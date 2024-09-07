@@ -6,35 +6,27 @@
 /*   By: akyoshid <akyoshid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/02 22:57:05 by akyoshid          #+#    #+#             */
-/*   Updated: 2024/09/07 21:56:10 by akyoshid         ###   ########.fr       */
+/*   Updated: 2024/09/07 23:27:36 by akyoshid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-// Previous version
-// === RETURN VALUES ===
-// Return a pointer to the first occurrence of '\n' in s.
-// If there is no '\n', return a pointer to the null terminator in s.
-// If s is NULL, return NULL.
-// char	*gnl_strchr(char *s)
-// {
-// 	if (s == NULL)
-// 		return (NULL);
-// 	while (*s != '\0')
-// 	{
-// 		if (*s == '\n')
-// 			return (s);
-// 		s++;
-// 	}
-// 	return (s);
-// }
+size_t	ft_strlen(char const *s)
+{
+	size_t	i;
+
+	i = 0;
+	while (s[i] != '\0')
+		i++;
+	return (i);
+}
 
 // === RETURN VALUES ===
 // Return the index of the first occurrence of '\n' in s.
 // If there is no '\n', return -1.
 // If s is NULL, return -1.
-size_t	find_newline_index(char *s)
+size_t	find_eol_index(char *s)
 {
 	size_t	i;
 
@@ -48,40 +40,6 @@ size_t	find_newline_index(char *s)
 		s++;
 	}
 	return (-1);
-}
-
-// *leftover_pに改行があるかを確認し、改行がなければ、改行が見つかるまでreadし続ける
-// malloc失敗した場合の戻り値はNULLになっている。
-// char	*get_till_eol(char *leftover, int const fd)
-// {
-// 	char	*buff;
-// 	char	*last_p;
-// 	char	*temp;
-
-// 	buff = leftover;
-// 	while (1)
-// 	{
-// 		last_p = ft_strchr_eol(buff);
-// 		if (last_p != NULL)
-// 			break ;
-// 		temp = (char *)malloc(BUFFER_SIZE + 1);
-// 		if (temp == NULL)
-// 			return (NULL);
-// 		if (read(fd, temp, BUFFER_SIZE) == 0)
-// 			return (buff); // leftover == NULLの時どうする
-		
-
-
-// }
-
-size_t	ft_strlen(char const *s)
-{
-	size_t	i;
-
-	i = 0;
-	while (s[i] != '\0')
-		i++;
-	return (i);
 }
 
 // === DESCRIPTION ===
@@ -127,26 +85,47 @@ char	*gnl_strjoin(char const *s1, char const *s2)
 // Also, put the remaining string after the first '\n'
 // into the pointer variable leftover of the calling function
 // through the double pointer argument.
+// If malloc was failed, it returns NULL.
 // leftoverは確実に
 // - NULLではない。
 // - 改行文字が含まれている。
 char	*gnl_split(char **leftover_p)
 {
 	char	*line;
+	char	*after_eol;
+	size_t	eol_i;
 	size_t	i;
 
-	line = (char *)malloc((find_newline_index(*leftover_p) + 2) * sizeof(char));
+	eol_i = find_eol_index(*leftover_p);
+	line = (char *)malloc((eol_i + 2) * sizeof(char));
 	if (line == NULL)
 		return (NULL);
 	i = 0;
-	while (*leftover_p[i] != '\n')
+	while (i < eol_i)
 	{
 		line[i] = *leftover_p[i];
 		i++;
 	}
-	line[i] = '\n';
-	line[i + 1] = '\0';
-// leftover NULL終端保証されてるか確認する！！！
+	line[eol_i] = '\n';
+	line[eol_i + 1] = '\0';
+	if (*leftover_p[eol_i + 1] == '\0') // ピッタリなくなった時の処理
+	{
+		free(*leftover_p);
+		*leftover_p = NULL;
+		return (line);
+	}
+	after_eol = (char *)malloc((ft_strlen(*leftover_p) - eol_i) * sizeof(char));
+	if (after_eol == NULL) // freeしないと！🔥🔥🔥🔥🔥malloc失敗した後のfree頑張ろ
+		return (NULL);
+	i = 0;
+	while (*leftover_p[eol_i + 1 + i] != '\0')
+	{
+		after_eol[i] = *leftover_p[eol_i + 1 + i];
+		i++;
+	}
+	after_eol[i] = '\0';
+	free(*leftover_p);
+	*leftover_p = after_eol;
 	return (line);
 }
 
@@ -163,7 +142,7 @@ char	*get_next_line(int fd)
 	// 改行文字が無ければ、新しくreadし、leftoverにstrjoinし、再度改行文字を探す。
 	while (1)
 	{
-		if (find_newline_index(leftover) != -1) // leftoverに改行文字があれば、breakし、次に行く。
+		if (find_eol_index(leftover) != -1) // leftoverに改行文字があれば、breakし、次に行く。
 			break ;
 		read_buff = (char *)malloc(BUFFER_SIZE + 1);
 		if (read_buff == NULL)
