@@ -6,7 +6,7 @@
 /*   By: akyoshid <akyoshid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/02 22:57:05 by akyoshid          #+#    #+#             */
-/*   Updated: 2024/09/07 23:27:36 by akyoshid         ###   ########.fr       */
+/*   Updated: 2024/09/08 17:01:54 by akyoshid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,15 @@ size_t	ft_strlen(char const *s)
 	return (i);
 }
 
+char	*gnl_free(char **pp1, char **pp2) //Return Valueを設定できる引数用意すれば、get_next_lineの行数減らせる
+{
+	free(*pp1);
+	free(*pp2);
+	*pp1 = NULL;
+	*pp2 = NULL;
+	return (NULL);
+}
+	
 // === RETURN VALUES ===
 // Return the index of the first occurrence of '\n' in s.
 // If there is no '\n', return -1.
@@ -43,39 +52,32 @@ size_t	find_eol_index(char *s)
 }
 
 // === DESCRIPTION ===
-// Allocates and returns a new string by combining 's1' and 's2'.
-// === MODIFICATION FOR GNL ===
-// - s1 will be passed leftover, s2 will be passed read_buff.
-// - Join even if (s1 == NULL).
-// - Free s1 and s2 after joining.
-// === RETURN VALUE ===
-// When malloc was failed → Return NULL.
-char	*gnl_strjoin(char const *s1, char const *s2)
+// - Allocates and returns a new string by combining 'leftover' and 'read_buff'.
+// - lo_p will be passed &leftover, rb_p will be passed &read_buff.
+// - Join even if (leftover == NULL).
+// - Free leftover and read_buff after joining.
+// - When malloc was failed, return NULL.
+char	*gnl_strjoin(char const **lo_p, char const **rb_p)
 {
 	char	*buff;
+	char	*lo_temp;
+	char	*rb_temp;
 	size_t	i;
 
-	if (s1 == NULL)
-		s1 = "";
-	buff = (char *)malloc((ft_strlen(s1) + ft_strlen(s2) + 1) * sizeof(char));
+	lo_temp = *lo_p;
+	rb_temp = *rb_p;
+	if (lo_temp == NULL)
+		lo_temp = "";
+	buff = (char *)malloc((ft_strlen(*lo_temp) + ft_strlen(*rb_temp) + 1));
 	if (buff == NULL)
-		return (NULL);
+		return (gnl_free(lo_p, rb_p));
 	i = 0;
-	while (*s1 == '\0')
-	{
-		buff[i] = *s1;
-		i++;
-		s1++;
-	}
-	while (*s2 == '\0')
-	{
-		buff[i] = *s2;
-		i++;
-		s2++;
-	}
+	while (*lo_temp != '\0')
+		buff[i++] = *(lo_temp++);
+	while (*rb_temp != '\0')
+		buff[i++] = *(rb_temp++);
 	buff[i] = '\0';
-	free(s1);
-	free(s2);
+	gnl_free(lo_p, rb_p);
 	return (buff);
 }
 
@@ -129,6 +131,10 @@ char	*gnl_split(char **leftover_p)
 	return (line);
 }
 
+// === RETURN VALUE ===
+// Return one line.
+// If there is no strings to read in fd, return NULL.
+// If read was failed, return NULL.
 char	*get_next_line(int fd)
 {
 	static char	*leftover;
@@ -146,18 +152,21 @@ char	*get_next_line(int fd)
 			break ;
 		read_buff = (char *)malloc(BUFFER_SIZE + 1);
 		if (read_buff == NULL)
-			return (NULL);
+			return (gnl_free(&leftover, NULL));
 		read_rv = read(fd, read_buff, BUFFER_SIZE);
-		if (read_rv == -1 || (read_rv == 0 && leftover == NULL)) //read失敗 || readするものがなくleftoverもない
-			return (NULL);
-		if (read_rv == 0) // readするものがないが、('\n'は含まれていない)leftoverはある場合
+		if (read_rv == -1 || (read_rv == 0 && leftover == NULL)) //read失敗 || readするものがなくleftoverもない 🔥leftover == NULLの時に残りがないって判断は正しい？gnl_splitでleftoverを正しく処理できていれば問題ないよ
+			return (gnl_free(&leftover, &read_buff));
+		if (read_rv == 0) // readするものがないが、('\n'は含まれていない)leftoverはある場合 🔥上の次考えて 🔥gnl_freeの引数増やせば行減らせるよ
+		{
+			free(read_buff);
 			return (leftover);
+		}
 		read_buff[read_rv] = '\0';
-		leftover = gnl_strjoin(leftover, read_buff);
+		leftover = gnl_strjoin(&leftover, &read_buff);
 		if (leftover == NULL)
 			return (NULL);
 	}
-	// ここには、必ず改行文字が含まれたleftoverが来ている。
+	// ここには、必ず改行文字が含まれたleftoverが来ている。read_buffはfree済みか割当なし。
 	// splitは、leftoverから、改行文字で切って、lineと新leftoverに分ける。
 	gnl_split(&leftover);
 	// gnl_splitで、malloc失敗した場合の処理
