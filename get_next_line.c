@@ -6,7 +6,7 @@
 /*   By: akyoshid <akyoshid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/02 22:57:05 by akyoshid          #+#    #+#             */
-/*   Updated: 2024/09/08 17:01:54 by akyoshid         ###   ########.fr       */
+/*   Updated: 2024/09/08 18:59:17 by akyoshid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,43 +91,42 @@ char	*gnl_strjoin(char const **lo_p, char const **rb_p)
 // leftoverは確実に
 // - NULLではない。
 // - 改行文字が含まれている。
-char	*gnl_split(char **leftover_p)
+char	*gnl_split(char **lo_p)
 {
 	char	*line;
 	char	*after_eol;
 	size_t	eol_i;
 	size_t	i;
 
-	eol_i = find_eol_index(*leftover_p);
+	eol_i = find_eol_index(*lo_p);
 	line = (char *)malloc((eol_i + 2) * sizeof(char));
 	if (line == NULL)
-		return (NULL);
+		return (gnl_free(lo_p, NULL));
 	i = 0;
-	while (i < eol_i)
+	while (i <= eol_i)
 	{
-		line[i] = *leftover_p[i];
+		line[i] = *lo_p[i];
 		i++;
 	}
-	line[eol_i] = '\n';
 	line[eol_i + 1] = '\0';
-	if (*leftover_p[eol_i + 1] == '\0') // ピッタリなくなった時の処理
+	if (*lo_p[eol_i + 1] == '\0') // leftoverが全てlineに入った時の処理：空のleftoverは、空の文字列ではなく、NULLで表現する。🔥gnl_free関数の引数増やして短くできる
 	{
-		free(*leftover_p);
-		*leftover_p = NULL;
+		free(*lo_p);
+		*lo_p = NULL;
 		return (line);
 	}
-	after_eol = (char *)malloc((ft_strlen(*leftover_p) - eol_i) * sizeof(char));
-	if (after_eol == NULL) // freeしないと！🔥🔥🔥🔥🔥malloc失敗した後のfree頑張ろ
-		return (NULL);
+	after_eol = (char *)malloc((ft_strlen(*lo_p) - eol_i) * sizeof(char));
+	if (after_eol == NULL)
+		return (gnl_free(&line, lo_p));
 	i = 0;
-	while (*leftover_p[eol_i + 1 + i] != '\0')
+	while (*lo_p[eol_i + 1 + i] != '\0')
 	{
-		after_eol[i] = *leftover_p[eol_i + 1 + i];
+		after_eol[i] = *lo_p[eol_i + 1 + i];
 		i++;
 	}
 	after_eol[i] = '\0';
-	free(*leftover_p);
-	*leftover_p = after_eol;
+	free(*lo_p);
+	*lo_p = after_eol;
 	return (line);
 }
 
@@ -149,7 +148,7 @@ char	*get_next_line(int fd)
 	while (1)
 	{
 		if (find_eol_index(leftover) != -1) // leftoverに改行文字があれば、breakし、次に行く。
-			break ;
+			break ; // 🔥ここでreturnすればいいんじゃない？
 		read_buff = (char *)malloc(BUFFER_SIZE + 1);
 		if (read_buff == NULL)
 			return (gnl_free(&leftover, NULL));
