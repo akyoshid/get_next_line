@@ -12,7 +12,7 @@
 
 #include "get_next_line.h"
 
-size_t	ft_strlen(char const *s)
+size_t	ft_strlen(char *s)
 {
 	size_t	i;
 
@@ -57,7 +57,7 @@ size_t	find_eol_index(char *s)
 // - Join even if (leftover == NULL).
 // - Free leftover and read_buff after joining.
 // - When malloc was failed, return NULL.
-char	*gnl_strjoin(char const **lo_p, char const **rb_p)
+char	*gnl_strjoin(char **lo_p, char **rb_p)
 {
 	char	*buff;
 	char	*lo_temp;
@@ -68,7 +68,7 @@ char	*gnl_strjoin(char const **lo_p, char const **rb_p)
 	rb_temp = *rb_p;
 	if (lo_temp == NULL)
 		lo_temp = "";
-	buff = (char *)malloc((ft_strlen(*lo_temp) + ft_strlen(*rb_temp) + 1));
+	buff = (char *)malloc((ft_strlen(lo_temp) + ft_strlen(rb_temp) + 1));
 	if (buff == NULL)
 		return (gnl_free(lo_p, rb_p, NULL));
 	i = 0;
@@ -130,15 +130,15 @@ char	*get_next_line(int fd)
 	char		*read_buff;
 	ssize_t		read_rv;
 
-	if (fd < 0)
+	if (fd < 0 || BUFFER_SIZE <= 0 || BUFFER_SIZE > INT_MAX)
 		return (NULL);
 	// leftoverから改行文字を探す。
 	// 改行文字があれば、抜ける。
 	// 改行文字が無ければ、新しくreadし、leftoverにstrjoinし、再度改行文字を探す。
 	while (1)
 	{
-		if (find_eol_index(leftover) != -1) // leftoverに改行文字があれば、breakし、次に行く。
-			break ; // 🔥ここでreturnすればいいんじゃない？
+		if (find_eol_index(leftover) != -1) // leftoverに改行文字があれば、
+			return (gnl_split(&leftover)); // leftoverから、改行文字で切って、lineと新leftoverに分け、lineを返す
 		read_buff = (char *)malloc(BUFFER_SIZE + 1);
 		if (read_buff == NULL)
 			return (gnl_free(&leftover, NULL, NULL));
@@ -148,12 +148,8 @@ char	*get_next_line(int fd)
 		if (read_rv == 0) // readするものがないが、('\n'は含まれていない)leftoverはある場合 🔥上の次考えて 🔥gnl_freeの引数増やせば行減らせるよ
 			return (gnl_free(NULL, &read_buff, leftover));
 		read_buff[read_rv] = '\0';
-		leftover = gnl_strjoin(&leftover, &read_buff);
+		leftover = gnl_strjoin(&leftover, &read_buff); //旧leftover、read_buffはfreeされる。
 		if (leftover == NULL)
 			return (NULL);
 	}
-	// ここには、必ず改行文字が含まれたleftoverが来ている。read_buffはfree済みか割当なし。
-	// splitは、leftoverから、改行文字で切って、lineと新leftoverに分ける。
-	gnl_split(&leftover);
-	// gnl_splitで、malloc失敗した場合の処理
 }
