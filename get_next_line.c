@@ -12,9 +12,9 @@
 
 #include "get_next_line.h"
 
-size_t	ft_strlen(char *s)
+ssize_t	ft_strlen(char *s)
 {
-	size_t	i;
+	ssize_t	i;
 
 	i = 0;
 	while (s[i] != '\0')
@@ -35,9 +35,9 @@ char	*gnl_free(char **pp1, char **pp2, char *return_value) //Return Valueを設�
 // Return the index of the first occurrence of '\n' in s.
 // If there is no '\n', return -1.
 // If s is NULL, return -1.
-size_t	find_eol_index(char *s)
+ssize_t	find_eol_index(char *s)
 {
-	size_t	i;
+	ssize_t	i;
 
 	if (s == NULL)
 		return (-1);
@@ -62,7 +62,7 @@ char	*gnl_strjoin(char **lo_p, char **rb_p)
 	char	*buff;
 	char	*lo_temp;
 	char	*rb_temp;
-	size_t	i;
+	ssize_t	i;
 
 	lo_temp = *lo_p;
 	rb_temp = *rb_p;
@@ -95,25 +95,25 @@ char	*gnl_split(char **lo_p)
 {
 	char	*line;
 	char	*after_eol;
-	size_t	eol_i;
-	size_t	i;
+	ssize_t	eol_i;
+	ssize_t	i;
 
 	eol_i = find_eol_index(*lo_p);
 	line = (char *)malloc((eol_i + 2) * sizeof(char));
 	if (line == NULL)
 		return (gnl_free(lo_p, NULL, NULL));
-	i = 0;
-	while (i <= eol_i)
-		line[i] = *lo_p[i++];
+	i = -1;
+	while (++i <= eol_i)
+		line[i] = *lo_p[i];
 	line[eol_i + 1] = '\0';
 	if (*lo_p[eol_i + 1] == '\0') // leftoverが全てlineに入った時の処理：空のleftoverは、空の文字列ではなく、NULLで表現する。テキストファイルに空の文字列という状態は存在しない。
 		return (gnl_free(lo_p, NULL, line));
 	after_eol = (char *)malloc((ft_strlen(*lo_p) - eol_i) * sizeof(char));
 	if (after_eol == NULL)
 		return (gnl_free(&line, lo_p, NULL));
-	i = 0;
-	while (*lo_p[eol_i + 1 + i] != '\0')
-		after_eol[i] = *lo_p[eol_i + 1 + i++];
+	i = -1;
+	while (*lo_p[eol_i + 1 + ++i] != '\0')
+		after_eol[i] = *lo_p[eol_i + 1 + i];
 	after_eol[i] = '\0';
 	free(*lo_p);
 	*lo_p = after_eol;
