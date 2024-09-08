@@ -6,7 +6,7 @@
 /*   By: akyoshid <akyoshid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/02 22:57:05 by akyoshid          #+#    #+#             */
-/*   Updated: 2024/09/08 21:46:52 by akyoshid         ###   ########.fr       */
+/*   Updated: 2024/09/08 21:46:52t st by akyoshid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,13 +22,13 @@ size_t	ft_strlen(char const *s)
 	return (i);
 }
 
-char	*gnl_free(char **pp1, char **pp2) //Return Valueを設定できる引数用意すれば、get_next_lineの行数減らせる
+char	*gnl_free(char **pp1, char **pp2, char *return_value) //Return Valueを設定できる引数用意すれば、get_next_lineの行数減らせる
 {
 	free(*pp1);
 	free(*pp2);
 	*pp1 = NULL;
 	*pp2 = NULL;
-	return (NULL);
+	return (return_value);
 }
 	
 // === RETURN VALUES ===
@@ -70,14 +70,14 @@ char	*gnl_strjoin(char const **lo_p, char const **rb_p)
 		lo_temp = "";
 	buff = (char *)malloc((ft_strlen(*lo_temp) + ft_strlen(*rb_temp) + 1));
 	if (buff == NULL)
-		return (gnl_free(lo_p, rb_p));
+		return (gnl_free(lo_p, rb_p, NULL));
 	i = 0;
 	while (*lo_temp != '\0')
 		buff[i++] = *(lo_temp++);
 	while (*rb_temp != '\0')
 		buff[i++] = *(rb_temp++);
 	buff[i] = '\0';
-	gnl_free(lo_p, rb_p);
+	gnl_free(lo_p, rb_p, NULL);
 	return (buff);
 }
 
@@ -101,20 +101,16 @@ char	*gnl_split(char **lo_p)
 	eol_i = find_eol_index(*lo_p);
 	line = (char *)malloc((eol_i + 2) * sizeof(char));
 	if (line == NULL)
-		return (gnl_free(lo_p, NULL));
+		return (gnl_free(lo_p, NULL, NULL));
 	i = 0;
 	while (i <= eol_i)
 		line[i] = *lo_p[i++];
 	line[eol_i + 1] = '\0';
-	if (*lo_p[eol_i + 1] == '\0') // leftoverが全てlineに入った時の処理：空のleftoverは、空の文字列ではなく、NULLで表現する。テキストファイルに空の文字列という状態は存在しない。🔥gnl_free関数の引数増やして短くできる
-	{
-		free(*lo_p);
-		*lo_p = NULL;
-		return (line);
-	}
+	if (*lo_p[eol_i + 1] == '\0') // leftoverが全てlineに入った時の処理：空のleftoverは、空の文字列ではなく、NULLで表現する。テキストファイルに空の文字列という状態は存在しない。
+		return (gnl_free(lo_p, NULL, line));
 	after_eol = (char *)malloc((ft_strlen(*lo_p) - eol_i) * sizeof(char));
 	if (after_eol == NULL)
-		return (gnl_free(&line, lo_p));
+		return (gnl_free(&line, lo_p, NULL));
 	i = 0;
 	while (*lo_p[eol_i + 1 + i] != '\0')
 		after_eol[i] = *lo_p[eol_i + 1 + i++];
@@ -145,15 +141,12 @@ char	*get_next_line(int fd)
 			break ; // 🔥ここでreturnすればいいんじゃない？
 		read_buff = (char *)malloc(BUFFER_SIZE + 1);
 		if (read_buff == NULL)
-			return (gnl_free(&leftover, NULL));
+			return (gnl_free(&leftover, NULL, NULL));
 		read_rv = read(fd, read_buff, BUFFER_SIZE);
 		if (read_rv == -1 || (read_rv == 0 && leftover == NULL)) //read失敗 || readするものがなくleftoverもない 🔥leftover == NULLの時に残りがないって判断は正しい？gnl_splitでleftoverを正しく処理できていれば問題ないよ
-			return (gnl_free(&leftover, &read_buff));
+			return (gnl_free(&leftover, &read_buff, NULL));
 		if (read_rv == 0) // readするものがないが、('\n'は含まれていない)leftoverはある場合 🔥上の次考えて 🔥gnl_freeの引数増やせば行減らせるよ
-		{
-			free(read_buff);
-			return (leftover);
-		}
+			return (gnl_free(NULL, &read_buff, leftover));
 		read_buff[read_rv] = '\0';
 		leftover = gnl_strjoin(&leftover, &read_buff);
 		if (leftover == NULL)
