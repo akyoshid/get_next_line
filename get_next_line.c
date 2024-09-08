@@ -6,7 +6,7 @@
 /*   By: akyoshid <akyoshid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/02 22:57:05 by akyoshid          #+#    #+#             */
-/*   Updated: 2024/09/08 18:59:17 by akyoshid         ###   ########.fr       */
+/*   Updated: 2024/09/08 21:46:52 by akyoshid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,12 +104,9 @@ char	*gnl_split(char **lo_p)
 		return (gnl_free(lo_p, NULL));
 	i = 0;
 	while (i <= eol_i)
-	{
-		line[i] = *lo_p[i];
-		i++;
-	}
+		line[i] = *lo_p[i++];
 	line[eol_i + 1] = '\0';
-	if (*lo_p[eol_i + 1] == '\0') // leftoverが全てlineに入った時の処理：空のleftoverは、空の文字列ではなく、NULLで表現する。🔥gnl_free関数の引数増やして短くできる
+	if (*lo_p[eol_i + 1] == '\0') // leftoverが全てlineに入った時の処理：空のleftoverは、空の文字列ではなく、NULLで表現する。テキストファイルに空の文字列という状態は存在しない。🔥gnl_free関数の引数増やして短くできる
 	{
 		free(*lo_p);
 		*lo_p = NULL;
@@ -120,10 +117,7 @@ char	*gnl_split(char **lo_p)
 		return (gnl_free(&line, lo_p));
 	i = 0;
 	while (*lo_p[eol_i + 1 + i] != '\0')
-	{
-		after_eol[i] = *lo_p[eol_i + 1 + i];
-		i++;
-	}
+		after_eol[i] = *lo_p[eol_i + 1 + i++];
 	after_eol[i] = '\0';
 	free(*lo_p);
 	*lo_p = after_eol;
