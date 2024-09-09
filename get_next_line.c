@@ -21,18 +21,18 @@ ssize_t	ft_strlen(char *s)
 		i++;
 	return (i);
 }
-
-char	*gnl_free(char **pp1, char **pp2, char *return_value) //Return Valueを設定できる引数用意すれば、get_next_lineの行数減らせる
+char	*gnl_free(char **pp1, char **pp2, char *return_value, int last_wo_eol)
 {
 	if (pp1 != NULL)
 	{
-	free(*pp1);
+		if (last_wo_eol != 1)
+			free(*pp1);
 		*pp1 = NULL;
 	}
 	if (pp2 != NULL)
 	{
-	free(*pp2);
-	*pp2 = NULL;
+		free(*pp2);
+		*pp2 = NULL;
 	}
 	return (return_value);
 }
@@ -76,14 +76,14 @@ char	*gnl_strjoin(char **lo_p, char **rb_p)
 		lo_temp = "";
 	buff = (char *)malloc((ft_strlen(lo_temp) + ft_strlen(rb_temp) + 1));
 	if (buff == NULL)
-		return (gnl_free(lo_p, rb_p, NULL));
+		return (gnl_free(lo_p, rb_p, NULL, 0));
 	i = 0;
 	while (*lo_temp != '\0')
 		buff[i++] = *(lo_temp++);
 	while (*rb_temp != '\0')
 		buff[i++] = *(rb_temp++);
 	buff[i] = '\0';
-	return (gnl_free(lo_p, rb_p, buff));
+	return (gnl_free(lo_p, rb_p, buff, 0));
 }
 
 // === RETURN VALUE ===
@@ -106,16 +106,16 @@ char	*gnl_split(char **lo_p)
 	eol_i = find_eol_index(*lo_p);
 	line = (char *)malloc((eol_i + 2) * sizeof(char));
 	if (line == NULL)
-		return (gnl_free(lo_p, NULL, NULL));
+		return (gnl_free(lo_p, NULL, NULL, 0));
 	i = -1;
 	while (++i <= eol_i)
 		line[i] = (*lo_p)[i];
 	line[eol_i + 1] = '\0';
 	if ((*lo_p)[eol_i + 1] == '\0') // leftoverが全てlineに入った時の処理：空のleftoverは、空の文字列ではなく、NULLで表現する。テキストファイルに空の文字列という状態は存在しない。
-		return (gnl_free(lo_p, NULL, line));
+		return (gnl_free(lo_p, NULL, line, 0));
 	after_eol = (char *)malloc((ft_strlen(*lo_p) - eol_i) * sizeof(char));
 	if (after_eol == NULL)
-		return (gnl_free(&line, lo_p, NULL));
+		return (gnl_free(&line, lo_p, NULL, 0));
 	i = -1;
 	while ((*lo_p)[eol_i + 1 + ++i] != '\0')
 		after_eol[i] = (*lo_p)[eol_i + 1 + i];
@@ -129,6 +129,9 @@ char	*gnl_split(char **lo_p)
 // Return one line.
 // If there is no strings to read in fd, return NULL.
 // If read was failed, return NULL.
+// leftoverから改行文字を探す。
+// 改行文字があれば、抜ける。
+// 改行文字が無ければ、新しくreadし、leftoverにstrjoinし、再度改行文字を探す。
 char	*get_next_line(int fd)
 {
 	static char	*leftover;
@@ -137,27 +140,18 @@ char	*get_next_line(int fd)
 
 	if (fd < 0 || BUFFER_SIZE <= 0 || BUFFER_SIZE > INT_MAX)
 		return (NULL);
-	// leftoverから改行文字を探す。
-	// 改行文字があれば、抜ける。
-	// 改行文字が無ければ、新しくreadし、leftoverにstrjoinし、再度改行文字を探す。
 	while (1)
 	{
 		if (find_eol_index(leftover) != -1) // leftoverに改行文字があれば、
 			return (gnl_split(&leftover)); // leftoverから、改行文字で切って、lineと新leftoverに分け、lineを返す
 		read_buff = (char *)malloc(BUFFER_SIZE + 1);
 		if (read_buff == NULL)
-			return (gnl_free(&leftover, NULL, NULL));
+			return (gnl_free(&leftover, NULL, NULL, 0));
 		read_rv = read(fd, read_buff, BUFFER_SIZE);
 		if (read_rv == -1 || (read_rv == 0 && leftover == NULL)) //read失敗 || readするものがなくleftoverもない
-			return (gnl_free(&leftover, &read_buff, NULL));
+			return (gnl_free(&leftover, &read_buff, NULL, 0));
 		if (read_rv == 0) // readするものがないが、('\n'は含まれていない)leftoverはある場合
-		{
-			free(read_buff);
-			read_buff = leftover;
-			leftover = NULL;
-			return (read_buff);
-		}
-			// return (gnl_free(NULL, &read_buff, leftover)); //🔥 leftoverに残しちゃってる
+			return (gnl_free(&leftover, &read_buff, leftover, 1));
 		read_buff[read_rv] = '\0';
 		leftover = gnl_strjoin(&leftover, &read_buff); //旧leftover、read_buffはfreeされる。
 		if (leftover == NULL)
