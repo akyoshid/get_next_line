@@ -24,10 +24,16 @@ ssize_t	ft_strlen(char *s)
 
 char	*gnl_free(char **pp1, char **pp2, char *return_value) //Return Valueを設定できる引数用意すれば、get_next_lineの行数減らせる
 {
+	if (pp1 != NULL)
+	{
 	free(*pp1);
+		*pp1 = NULL;
+	}
+	if (pp2 != NULL)
+	{
 	free(*pp2);
-	*pp1 = NULL;
 	*pp2 = NULL;
+	}
 	return (return_value);
 }
 	
@@ -77,8 +83,7 @@ char	*gnl_strjoin(char **lo_p, char **rb_p)
 	while (*rb_temp != '\0')
 		buff[i++] = *(rb_temp++);
 	buff[i] = '\0';
-	gnl_free(lo_p, rb_p, NULL);
-	return (buff);
+	return (gnl_free(lo_p, rb_p, buff));
 }
 
 // === RETURN VALUE ===
