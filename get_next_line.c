@@ -46,7 +46,7 @@ ssize_t	find_eol_index(char *s)
 	{
 		if (s[i] == '\n')
 			return (i);
-		s++;
+		i++;
 	}
 	return (-1);
 }
