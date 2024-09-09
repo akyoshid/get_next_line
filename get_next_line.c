@@ -109,16 +109,16 @@ char	*gnl_split(char **lo_p)
 		return (gnl_free(lo_p, NULL, NULL));
 	i = -1;
 	while (++i <= eol_i)
-		line[i] = *lo_p[i];
+		line[i] = (*lo_p)[i];
 	line[eol_i + 1] = '\0';
-	if (*lo_p[eol_i + 1] == '\0') // leftoverが全てlineに入った時の処理：空のleftoverは、空の文字列ではなく、NULLで表現する。テキストファイルに空の文字列という状態は存在しない。
+	if ((*lo_p)[eol_i + 1] == '\0') // leftoverが全てlineに入った時の処理：空のleftoverは、空の文字列ではなく、NULLで表現する。テキストファイルに空の文字列という状態は存在しない。
 		return (gnl_free(lo_p, NULL, line));
 	after_eol = (char *)malloc((ft_strlen(*lo_p) - eol_i) * sizeof(char));
 	if (after_eol == NULL)
 		return (gnl_free(&line, lo_p, NULL));
 	i = -1;
-	while (*lo_p[eol_i + 1 + ++i] != '\0')
-		after_eol[i] = *lo_p[eol_i + 1 + i];
+	while ((*lo_p)[eol_i + 1 + ++i] != '\0')
+		after_eol[i] = (*lo_p)[eol_i + 1 + i];
 	after_eol[i] = '\0';
 	free(*lo_p);
 	*lo_p = after_eol;
