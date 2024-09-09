@@ -148,10 +148,16 @@ char	*get_next_line(int fd)
 		if (read_buff == NULL)
 			return (gnl_free(&leftover, NULL, NULL));
 		read_rv = read(fd, read_buff, BUFFER_SIZE);
-		if (read_rv == -1 || (read_rv == 0 && leftover == NULL)) //read失敗 || readするものがなくleftoverもない 🔥leftover == NULLの時に残りがないって判断は正しい？gnl_splitでleftoverを正しく処理できていれば問題ないよ
+		if (read_rv == -1 || (read_rv == 0 && leftover == NULL)) //read失敗 || readするものがなくleftoverもない
 			return (gnl_free(&leftover, &read_buff, NULL));
-		if (read_rv == 0) // readするものがないが、('\n'は含まれていない)leftoverはある場合 🔥上の次考えて 🔥gnl_freeの引数増やせば行減らせるよ
-			return (gnl_free(NULL, &read_buff, leftover));
+		if (read_rv == 0) // readするものがないが、('\n'は含まれていない)leftoverはある場合
+		{
+			free(read_buff);
+			read_buff = leftover;
+			leftover = NULL;
+			return (read_buff);
+		}
+			// return (gnl_free(NULL, &read_buff, leftover)); //🔥 leftoverに残しちゃってる
 		read_buff[read_rv] = '\0';
 		leftover = gnl_strjoin(&leftover, &read_buff); //旧leftover、read_buffはfreeされる。
 		if (leftover == NULL)
