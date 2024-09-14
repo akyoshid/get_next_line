@@ -6,7 +6,7 @@
 /*   By: akyoshid <akyoshid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/02 22:57:05 by akyoshid          #+#    #+#             */
-/*   Updated: 2024/09/15 03:28:53 by akyoshid         ###   ########.fr       */
+/*   Updated: 2024/09/15 03:37:18 by akyoshid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,59 +104,26 @@ char	*gnl_split(char **lo_p)
 	ssize_t	i;
 
 	eol_i = find_eol_index(*lo_p);
-	// line = (char *)malloc((eol_i + 2) * sizeof(char));
-	// if (line == NULL)
-		// return (gnl_free(lo_p, NULL, NULL, 0));
-	// i = -1;
-	// while (++i <= eol_i)
-		// line[i] = (*lo_p)[i];
-	// line[eol_i + 1] = '\0';
+	line = (char *)malloc((eol_i + 2) * sizeof(char));
+	if (line == NULL)
+		return (gnl_free(lo_p, NULL, NULL, 0));
+	i = -1;
+	while (++i <= eol_i)
+		line[i] = (*lo_p)[i];
+	line[eol_i + 1] = '\0';
 	if ((*lo_p)[eol_i + 1] == '\0') // leftoverが全てlineに入った時の処理：空のleftoverは、空の文字列ではなく、NULLで表現する。テキストファイルに空の文字列という状態は存在しない。
-		return (gnl_free(lo_p, NULL, *lo_p, 1)); //NEW
-		// return (gnl_free(lo_p, NULL, line, 0));
+		return (gnl_free(lo_p, NULL, line, 0));
 	after_eol = (char *)malloc((ft_strlen(*lo_p) - eol_i) * sizeof(char));
 	if (after_eol == NULL)
-		return (gnl_free(lo_p, NULL, NULL, 0)); //NEW
-		// return (gnl_free(&line, lo_p, NULL, 0));
+		return (gnl_free(&line, lo_p, NULL, 0));
 	i = -1;
 	while ((*lo_p)[eol_i + 1 + ++i] != '\0')
 		after_eol[i] = (*lo_p)[eol_i + 1 + i];
 	after_eol[i] = '\0';
-	// free(*lo_p);
-	line = *lo_p; //NEW
-	line[eol_i + 1] = '\0'; //NEW
+	free(*lo_p);
 	*lo_p = after_eol;
 	return (line);
 }
-
-// char	*gnl_split(char **lo_p)
-// {
-// 	char	*line;
-// 	char	*after_eol;
-// 	ssize_t	eol_i;
-// 	ssize_t	i;
-
-// 	eol_i = find_eol_index(*lo_p);
-// 	line = (char *)malloc((eol_i + 2) * sizeof(char));
-// 	if (line == NULL)
-// 		return (gnl_free(lo_p, NULL, NULL, 0));
-// 	i = -1;
-// 	while (++i <= eol_i)
-// 		line[i] = (*lo_p)[i];
-// 	line[eol_i + 1] = '\0';
-// 	if ((*lo_p)[eol_i + 1] == '\0') // leftoverが全てlineに入った時の処理：空のleftoverは、空の文字列ではなく、NULLで表現する。テキストファイルに空の文字列という状態は存在しない。
-// 		return (gnl_free(lo_p, NULL, line, 0));
-// 	after_eol = (char *)malloc((ft_strlen(*lo_p) - eol_i) * sizeof(char));
-// 	if (after_eol == NULL)
-// 		return (gnl_free(&line, lo_p, NULL, 0));
-// 	i = -1;
-// 	while ((*lo_p)[eol_i + 1 + ++i] != '\0')
-// 		after_eol[i] = (*lo_p)[eol_i + 1 + i];
-// 	after_eol[i] = '\0';
-// 	free(*lo_p);
-// 	*lo_p = after_eol;
-// 	return (line);
-// }
 
 // === RETURN VALUE ===
 // Return one line.
