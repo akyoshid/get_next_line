@@ -6,7 +6,7 @@
 /*   By: akyoshid <akyoshid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/02 22:57:05 by akyoshid          #+#    #+#             */
-/*   Updated: 2024/09/17 02:50:59 by akyoshid         ###   ########.fr       */
+/*   Updated: 2024/09/17 04:11:42 by akyoshid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,7 +61,7 @@ char	*gnl_free(char **pp1, char **pp2, char *return_value, int last_wo_eol)
 	}
 	return (return_value);
 }
-	
+
 // === DESCRIPTION ===
 // - Allocates and returns a new string by combining 'leftover' and 'read_buff'.
 // - lo_p will be passed &leftover, rb_p will be passed &read_buff.
@@ -139,27 +139,26 @@ char	*gnl_split(char **lo_p)
 // 改行文字が無ければ、新しくreadし、leftoverにstrjoinし、再度改行文字を探す。
 char	*get_next_line(int fd)
 {
-	static char	*leftover;
-	char		*read_buff;
+	static t_fd	f;
 	ssize_t		read_rv;
 
 	if (fd < 0 || BUFFER_SIZE <= 0)
 		return (NULL);
 	while (1)
 	{
-		if (find_eobl(leftover, 0) != -1) // leftoverに改行文字があれば、
-			return (gnl_split(&leftover)); // leftoverから、改行文字で切って、lineと新leftoverに分け、lineを返す
-		read_buff = (char *)malloc(BUFFER_SIZE + 1);
-		if (read_buff == NULL)
-			return (gnl_free(&leftover, NULL, NULL, 0));
-		read_rv = read(fd, read_buff, BUFFER_SIZE);
-		if (read_rv == -1 || (read_rv == 0 && leftover == NULL)) //read失敗 || readするものがなくleftoverもない
-			return (gnl_free(&leftover, &read_buff, NULL, 0));
+		if (find_eobl(f.leftover, 0) != -1) // leftoverに改行文字があれば、
+			return (gnl_split(&f.leftover)); // leftoverから、改行文字で切って、lineと新leftoverに分け、lineを返す
+		f.readbuff = (char *)malloc(BUFFER_SIZE + 1);
+		if (f.readbuff == NULL)
+			return (gnl_free(&f.leftover, NULL, NULL, 0));
+		read_rv = read(fd, f.readbuff, BUFFER_SIZE);
+		if (read_rv == -1 || (read_rv == 0 && f.leftover == NULL)) //read失敗 || readするものがなくleftoverもない
+			return (gnl_free(&f.leftover, &f.readbuff, NULL, 0));
 		if (read_rv == 0) // readするものがないが、('\n'は含まれていない)leftoverはある場合
-			return (gnl_free(&leftover, &read_buff, leftover, 1));
-		read_buff[read_rv] = EOB;
-		leftover = gnl_strjoin(&leftover, &read_buff); //旧leftover、read_buffはfreeされる。
-		if (leftover == NULL)
+			return (gnl_free(&f.leftover, &f.readbuff, f.leftover, 1));
+		f.readbuff[read_rv] = EOB;
+		f.leftover = gnl_strjoin(&f.leftover, &f.readbuff); //旧leftover、read_buffはfreeされる。
+		if (f.leftover == NULL)
 			return (NULL);
 	}
 }
