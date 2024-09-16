@@ -6,7 +6,7 @@
 /*   By: akyoshid <akyoshid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/02 22:57:05 by akyoshid          #+#    #+#             */
-/*   Updated: 2024/09/17 01:39:45 by akyoshid         ###   ########.fr       */
+/*   Updated: 2024/09/17 02:50:59 by akyoshid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,16 +14,11 @@
 
 char const	g_eob = EOB;
 
-// ssize_t	ft_strlen(char *s)
-// {
-// 	ssize_t	i;
-
-// 	i = 0;
-// 	while (s[i] != '\0')
-// 		i++;
-// 	return (i);
-// }
-
+// Return the index of first EOB(-1) or EOL('\n') in `str`.
+// This function requires that `str` is terminated with EOB!!!
+// If `str` is NULL, return -1.
+// If there is no EOL('\n') in `str` when it searches EOL, return -1.
+// `is_eob` determines which one to search.
 ssize_t	find_eobl(char *str, int is_eob)
 {
 	char	*str_s;
@@ -53,7 +48,9 @@ char	*gnl_free(char **pp1, char **pp2, char *return_value, int last_wo_eol)
 {
 	if (pp1 != NULL)
 	{
-		if (last_wo_eol != 1)
+		if (last_wo_eol == 1)
+			(*pp1)[find_eobl(*pp1, 1)] = '\0';
+		else
 			free(*pp1);
 		*pp1 = NULL;
 	}
@@ -65,26 +62,6 @@ char	*gnl_free(char **pp1, char **pp2, char *return_value, int last_wo_eol)
 	return (return_value);
 }
 	
-// === RETURN VALUES ===
-// Return the index of the first occurrence of '\n' in s.
-// If there is no '\n', return -1.
-// If s is NULL, return -1.
-// ssize_t	find_eol_index(char *s)
-// {
-// 	ssize_t	i;
-
-// 	if (s == NULL)
-// 		return (-1);
-// 	i = 0;
-// 	while (s[i] != '\0')
-// 	{
-// 		if (s[i] == '\n')
-// 			return (i);
-// 		i++;
-// 	}
-// 	return (-1);
-// }
-
 // === DESCRIPTION ===
 // - Allocates and returns a new string by combining 'leftover' and 'read_buff'.
 // - lo_p will be passed &leftover, rb_p will be passed &read_buff.
