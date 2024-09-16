@@ -6,21 +6,49 @@
 /*   By: akyoshid <akyoshid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/02 22:57:05 by akyoshid          #+#    #+#             */
-/*   Updated: 2024/09/16 20:17:59 by akyoshid         ###   ########.fr       */
+/*   Updated: 2024/09/17 01:39:45 by akyoshid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-ssize_t	ft_strlen(char *s)
-{
-	ssize_t	i;
+char const	g_eob = EOB;
 
-	i = 0;
-	while (s[i] != '\0')
-		i++;
-	return (i);
+// ssize_t	ft_strlen(char *s)
+// {
+// 	ssize_t	i;
+
+// 	i = 0;
+// 	while (s[i] != '\0')
+// 		i++;
+// 	return (i);
+// }
+
+ssize_t	find_eobl(char *str, int is_eob)
+{
+	char	*str_s;
+
+	str_s = str;
+	if (str == NULL)
+		return (-1);
+	else if (is_eob == 1)
+	{
+		while (*str != EOB)
+			str++;
+		return (str - str_s);
+	}
+	else
+	{
+		while (*str != EOB)
+		{
+			if (*str == '\n')
+				return (str - str_s);
+			str++;
+		}
+		return (-1);
+	}
 }
+
 char	*gnl_free(char **pp1, char **pp2, char *return_value, int last_wo_eol)
 {
 	if (pp1 != NULL)
@@ -41,21 +69,21 @@ char	*gnl_free(char **pp1, char **pp2, char *return_value, int last_wo_eol)
 // Return the index of the first occurrence of '\n' in s.
 // If there is no '\n', return -1.
 // If s is NULL, return -1.
-ssize_t	find_eol_index(char *s)
-{
-	ssize_t	i;
+// ssize_t	find_eol_index(char *s)
+// {
+// 	ssize_t	i;
 
-	if (s == NULL)
-		return (-1);
-	i = 0;
-	while (s[i] != '\0')
-	{
-		if (s[i] == '\n')
-			return (i);
-		i++;
-	}
-	return (-1);
-}
+// 	if (s == NULL)
+// 		return (-1);
+// 	i = 0;
+// 	while (s[i] != '\0')
+// 	{
+// 		if (s[i] == '\n')
+// 			return (i);
+// 		i++;
+// 	}
+// 	return (-1);
+// }
 
 // === DESCRIPTION ===
 // - Allocates and returns a new string by combining 'leftover' and 'read_buff'.
@@ -73,16 +101,16 @@ char	*gnl_strjoin(char **lo_p, char **rb_p)
 	lo_temp = *lo_p;
 	rb_temp = *rb_p;
 	if (lo_temp == NULL)
-		lo_temp = "";
-	buff = (char *)malloc((ft_strlen(lo_temp) + ft_strlen(rb_temp) + 1));
+		lo_temp = (char *)&g_eob;
+	buff = (char *)malloc((find_eobl(lo_temp, 1) + find_eobl(rb_temp, 1) + 1));
 	if (buff == NULL)
 		return (gnl_free(lo_p, rb_p, NULL, 0));
 	i = 0;
-	while (*lo_temp != '\0')
+	while (*lo_temp != EOB)
 		buff[i++] = *(lo_temp++);
-	while (*rb_temp != '\0')
+	while (*rb_temp != EOB)
 		buff[i++] = *(rb_temp++);
-	buff[i] = '\0';
+	buff[i] = EOB;
 	return (gnl_free(lo_p, rb_p, buff, 0));
 }
 
@@ -103,7 +131,7 @@ char	*gnl_split(char **lo_p)
 	ssize_t	eol_i;
 	ssize_t	i;
 
-	eol_i = find_eol_index(*lo_p);
+	eol_i = find_eobl(*lo_p, 0);
 	line = (char *)malloc((eol_i + 2) * sizeof(char));
 	if (line == NULL)
 		return (gnl_free(lo_p, NULL, NULL, 0));
@@ -111,15 +139,15 @@ char	*gnl_split(char **lo_p)
 	while (++i <= eol_i)
 		line[i] = (*lo_p)[i];
 	line[eol_i + 1] = '\0';
-	if ((*lo_p)[eol_i + 1] == '\0') // leftoverが全てlineに入った時の処理：空のleftoverは、空の文字列ではなく、NULLで表現する。テキストファイルに空の文字列という状態は存在しない。
+	if ((*lo_p)[eol_i + 1] == EOB) // leftoverが全てlineに入った時の処理：空のleftoverは、空の文字列ではなく、NULLで表現する。テキストファイルに空の文字列という状態は存在しない。
 		return (gnl_free(lo_p, NULL, line, 0));
-	after_eol = (char *)malloc((ft_strlen(*lo_p) - eol_i) * sizeof(char));
+	after_eol = (char *)malloc((find_eobl(*lo_p, 1) - eol_i) * sizeof(char));
 	if (after_eol == NULL)
 		return (gnl_free(&line, lo_p, NULL, 0));
 	i = -1;
-	while ((*lo_p)[eol_i + 1 + ++i] != '\0')
+	while ((*lo_p)[eol_i + 1 + ++i] != EOB)
 		after_eol[i] = (*lo_p)[eol_i + 1 + i];
-	after_eol[i] = '\0';
+	after_eol[i] = EOB;
 	free(*lo_p);
 	*lo_p = after_eol;
 	return (line);
@@ -142,7 +170,7 @@ char	*get_next_line(int fd)
 		return (NULL);
 	while (1)
 	{
-		if (find_eol_index(leftover) != -1) // leftoverに改行文字があれば、
+		if (find_eobl(leftover, 0) != -1) // leftoverに改行文字があれば、
 			return (gnl_split(&leftover)); // leftoverから、改行文字で切って、lineと新leftoverに分け、lineを返す
 		read_buff = (char *)malloc(BUFFER_SIZE + 1);
 		if (read_buff == NULL)
@@ -152,7 +180,7 @@ char	*get_next_line(int fd)
 			return (gnl_free(&leftover, &read_buff, NULL, 0));
 		if (read_rv == 0) // readするものがないが、('\n'は含まれていない)leftoverはある場合
 			return (gnl_free(&leftover, &read_buff, leftover, 1));
-		read_buff[read_rv] = '\0';
+		read_buff[read_rv] = EOB;
 		leftover = gnl_strjoin(&leftover, &read_buff); //旧leftover、read_buffはfreeされる。
 		if (leftover == NULL)
 			return (NULL);
