@@ -166,7 +166,7 @@ char	*get_next_line(int fd)
 	char		*read_buff;
 	ssize_t		read_rv;
 
-	if (fd < 0 || BUFFER_SIZE <= 0 || BUFFER_SIZE > INT_MAX)
+	if (fd < 0 || BUFFER_SIZE <= 0)
 		return (NULL);
 	while (1)
 	{
