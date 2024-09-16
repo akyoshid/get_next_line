@@ -6,7 +6,7 @@
 /*   By: akyoshid <akyoshid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/02 22:57:02 by akyoshid          #+#    #+#             */
-/*   Updated: 2024/09/09 04:58:09 by akyoshid         ###   ########.fr       */
+/*   Updated: 2024/09/16 20:23:58 by akyoshid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,10 @@
 
 # ifndef BUFFER_SIZE
 #  define BUFFER_SIZE 42
+# endif
+
+# ifndef EOF
+#  define EOF -1
 # endif
 
 char	*get_next_line(int fd);
