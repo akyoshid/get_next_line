@@ -6,13 +6,11 @@
 /*   By: akyoshid <akyoshid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/02 22:57:05 by akyoshid          #+#    #+#             */
-/*   Updated: 2024/09/18 04:28:18 by akyoshid         ###   ########.fr       */
+/*   Updated: 2024/09/18 05:40:59 by akyoshid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
-
-// char const	g_eob = EOB;
 
 // Return the index of first EOB(-1) or EOL('\n') in `str`.
 // This function requires that `str` is terminated with EOB!!!
@@ -44,6 +42,9 @@ ssize_t	find_eobl(char *str, int is_eob)
 	}
 }
 
+// 🔥
+// readするものがないかつ、leftoverもない、または'\n'を含まないleftoverはある場合
+// BONUS:読み切ったら、もしくはエラーが生じたら、ノードもfreeしないといけない
 char	*gnl_free(char **pp1, char **pp2, char *return_value, int last_wo_eol)
 {
 	if (pp1 != NULL)
@@ -82,10 +83,12 @@ void	*ft_memcpy(void *dst, const void *src, ssize_t n)
 }
 
 // === DESCRIPTION ===
-// - Allocates and returns a new string by combining 'leftover' and 'read_buff'.
-// - lo_p will be passed &leftover, rb_p will be passed &read_buff.
+// - Allocate & return new string by combining 'leftover' and 'read_buff'.
+// - The string is terminated by EOB.
 // - Join even if (leftover == NULL).
-// - Free leftover and read_buff after joining.
+// - Free old leftover and read_buff after joining.
+// - Store new string in leftover.
+// - Store the length of new string in lo_len;
 // - When malloc was failed, return NULL.
 char	*gnl_strjoin(t_fd *f_p)
 {
@@ -106,16 +109,17 @@ char	*gnl_strjoin(t_fd *f_p)
 	return (f_p->leftover);
 }
 
-// === RETURN VALUE ===
-// Return a string that extracts from leftover to the first '\n'.
-// (The string is null-terminated.)
-// Also, put the remaining string after the first '\n'
-// into the pointer variable leftover of the calling function
-// through the double pointer argument.
-// If malloc was failed, it returns NULL.
-// leftoverは確実に
-// - NULLではない。
-// - 改行文字が含まれている。
+// === DESCRIPTION ===
+// - Return the string up to first '\n' from leftover.
+// - The string is null-terminated.
+// - Also, store remaining string after first '\n' into leftover.
+// - The string is terminated by EOB.
+// - When malloc was failed, return NULL.
+// - The leftover processed by this function is guaranteed
+// to be not NULL & to contain '\n'.
+// - When entire leftover is stored in line,
+// that is, when the new leftover becomes empty,
+// store NULL, not empty string.
 char	*gnl_split(t_fd *f_p)
 {
 	char	*line;
@@ -142,12 +146,17 @@ char	*gnl_split(t_fd *f_p)
 }
 
 // === RETURN VALUE ===
-// Return one line.
-// If there is no strings to read in fd, return NULL.
-// If read was failed, return NULL.
-// leftoverから改行文字を探す。
-// 改行文字があれば、抜ける。
-// 改行文字が無ければ、新しくreadし、leftoverにstrjoinし、再度改行文字を探す。
+// - Return one line.
+// - If there is no strings to read in fd, return NULL.
+// - If an error occurs, return NULL.
+// - When NULL is returned, the file descriptor should be closed,
+// so if an error occurs, all heap memory are freed.
+// === DESCRIPTION ===
+// 1. Find for '\n' in leftover.
+// 2. If there is '\n', split and return the string up to '\n'.
+// 3. If there is no '\n', read from fd.
+// 4. If there is nothing else to read, return leftover.
+// 5. Join readbuff with leftover and back to step 1.
 char	*get_next_line(int fd)
 {
 	static t_fd	f;
@@ -157,17 +166,17 @@ char	*get_next_line(int fd)
 	while (1)
 	{
 		f.lo_eol_i = find_eobl(f.leftover, 0);
-		if (f.lo_eol_i != -1) // leftoverに改行文字があれば、
-			return (gnl_split(&f)); // leftoverから、改行文字で切って、lineと新leftoverに分け、lineを返す
+		if (f.lo_eol_i != -1)
+			return (gnl_split(&f));
 		f.readbuff = (char *)malloc(BUFFER_SIZE + 1);
 		if (f.readbuff == NULL)
 			return (gnl_free(&f.leftover, NULL, NULL, 0));
 		f.rb_len = read(fd, f.readbuff, BUFFER_SIZE);
-		if (f.rb_len == -1) // read失敗
+		if (f.rb_len == -1)
 			return (gnl_free(&f.leftover, &f.readbuff, NULL, 0));
-		else if (f.rb_len == 0) // readするものがないかつ、leftoverもない、または'\n'を含まないleftoverはある場合
-			return (gnl_free(&f.leftover, &f.readbuff, f.leftover, 1)); //🔥🔥BONUS:読み切ったらノードもfreeしないといけない
-		else if (gnl_strjoin(&f) == NULL) // 旧leftover、read_buffはfreeされる。
+		else if (f.rb_len == 0)
+			return (gnl_free(&f.leftover, &f.readbuff, f.leftover, 1));
+		else if (gnl_strjoin(&f) == NULL)
 			return (NULL);
 	}
 }
