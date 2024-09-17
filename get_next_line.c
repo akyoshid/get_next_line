@@ -102,7 +102,10 @@ char	*gnl_strjoin(t_fd *f_p)
 	ft_memcpy(buff, f_p->leftover, f_p->lo_len);
 	ft_memcpy(buff + f_p->lo_len, f_p->readbuff, f_p->rb_len);
 	buff[f_p->lo_len + f_p->rb_len] = EOB;
-	return (gnl_free(&f_p->leftover, &f_p->readbuff, buff, 0));
+	gnl_free(&f_p->leftover, &f_p->readbuff, NULL, 0);
+	f_p->leftover = buff;
+	f_p->lo_len += f_p->rb_len;
+	return (buff);
 }
 
 // char	*gnl_strjoin(char **lo_p, char **rb_p)
@@ -212,10 +215,9 @@ char	*get_next_line(int fd)
 		if (read_rv == -1) // read失敗
 			return (gnl_free(&f.leftover, &f.readbuff, NULL, 0));
 		if (read_rv == 0) // readするものがないかつ、leftoverもない、または'\n'を含まないleftoverはある場合
-			return (gnl_free(&f.leftover, &f.readbuff, f.leftover, 1));
+			return (gnl_free(&f.leftover, &f.readbuff, f.leftover, 1)); //🔥🔥BONUS:読み切ったらノードもfreeしないといけない
 		f.readbuff[read_rv] = EOB;
-		f.leftover = gnl_strjoin(&f); // 旧leftover、read_buffはfreeされる。//🔥関数内で代入することで1行短くできる
-		if (f.leftover == NULL)
+		if (gnl_strjoin(&f) == NULL) // 旧leftover、read_buffはfreeされる。
 			return (NULL);
 	}
 }
