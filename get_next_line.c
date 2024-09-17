@@ -6,7 +6,7 @@
 /*   By: akyoshid <akyoshid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/02 22:57:05 by akyoshid          #+#    #+#             */
-/*   Updated: 2024/09/18 00:22:17 by akyoshid         ###   ########.fr       */
+/*   Updated: 2024/09/18 04:20:22 by akyoshid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,48 +108,6 @@ char	*gnl_strjoin(t_fd *f_p)
 	return (buff);
 }
 
-// char	*gnl_strjoin(char **lo_p, char **rb_p)
-// {
-// 	char	*buff;
-// 	ssize_t	lo_len;
-// 	ssize_t	rb_len;
-
-// 	lo_len = find_eobl(*lo_p, 1);;
-// 	rb_len = find_eobl(*rb_p, 1);
-// 	if (lo_len == -1)
-// 		lo_len = 0;
-// 	buff = (char *)malloc(lo_len + rb_len + 1);
-// 	if (buff == NULL)
-// 		return (gnl_free(lo_p, rb_p, NULL, 0));
-// 	ft_memcpy(buff, *lo_p, lo_len);
-// 	ft_memcpy(buff + lo_len, *rb_p, rb_len);
-// 	buff[lo_len + rb_len] = EOB;
-// 	return (gnl_free(lo_p, rb_p, buff, 0));
-// }
-
-// char *gnl_strjoin(char **lo_p, char **rb_p)
-// {
-// 	char	*buff;
-// 	char	*lo_temp;
-// 	char	*rb_temp;
-// 	ssize_t	i;
-
-// 	lo_temp = *lo_p;
-// 	rb_temp = *rb_p;
-// 	if (lo_temp == NULL)
-// 		lo_temp = (char *)&g_eob;
-// 	buff = (char *)malloc((find_eobl(lo_temp, 1) + find_eobl(rb_temp, 1) + 1));
-// 	if (buff == NULL)
-// 		return (gnl_free(lo_p, rb_p, NULL, 0));
-// 	i = 0;
-// 	while (*lo_temp != EOB)
-// 		buff[i++] = *(lo_temp++);
-// 	while (*rb_temp != EOB)
-// 		buff[i++] = *(rb_temp++);
-// 	buff[i] = EOB;
-// 	return (gnl_free(lo_p, rb_p, buff, 0));
-// }
-
 // === RETURN VALUE ===
 // Return a string that extracts from leftover to the first '\n'.
 // (The string is null-terminated.)
@@ -160,32 +118,26 @@ char	*gnl_strjoin(t_fd *f_p)
 // leftoverは確実に
 // - NULLではない。
 // - 改行文字が含まれている。
-char	*gnl_split(char **lo_p)
+char	*gnl_split(t_fd *f_p)
 {
 	char	*line;
 	char	*after_eol;
-	ssize_t	eol_i;
-	ssize_t	i;
 
-	eol_i = find_eobl(*lo_p, 0);
-	line = (char *)malloc((eol_i + 2) * sizeof(char));
+	line = (char *)malloc((f_p->lo_eol_i + 2));
 	if (line == NULL)
-		return (gnl_free(lo_p, NULL, NULL, 0));
-	i = -1;
-	while (++i <= eol_i)
-		line[i] = (*lo_p)[i];
-	line[eol_i + 1] = '\0';
-	if ((*lo_p)[eol_i + 1] == EOB) // leftoverが全てlineに入った時の処理：空のleftoverは、空の文字列ではなく、NULLで表現する。テキストファイルに空の文字列という状態は存在しない。
-		return (gnl_free(lo_p, NULL, line, 0));
-	after_eol = (char *)malloc((find_eobl(*lo_p, 1) - eol_i) * sizeof(char));
+		return (gnl_free(&f_p->leftover, NULL, NULL, 0));
+	ft_memcpy(line, f_p->leftover, f_p->lo_eol_i + 1);
+	line[f_p->lo_eol_i + 1] = '\0';
+	if (f_p->leftover[f_p->lo_eol_i + 1] == EOB) // leftoverが全てlineに入った時の処理：空のleftoverは、空の文字列ではなく、NULLで表現する。テキストファイルに空の文字列という状態は存在しない。
+		return (gnl_free(&f_p->leftover, NULL, line, 0));
+	after_eol = (char *)malloc(f_p->lo_len - f_p->lo_eol_i);
 	if (after_eol == NULL)
-		return (gnl_free(&line, lo_p, NULL, 0));
-	i = -1;
-	while ((*lo_p)[eol_i + 1 + ++i] != EOB)
-		after_eol[i] = (*lo_p)[eol_i + 1 + i];
-	after_eol[i] = EOB;
-	free(*lo_p);
-	*lo_p = after_eol;
+		return (gnl_free(&f_p->leftover, &line, NULL, 0));
+	ft_memcpy(after_eol, f_p->leftover + f_p->lo_eol_i + 1, f_p->lo_len - f_p->lo_eol_i - 1);
+	after_eol[f_p->lo_len - f_p->lo_eol_i - 1] = EOB;
+	free(f_p->leftover);
+	f_p->leftover = after_eol;
+	f_p->lo_len = f_p->lo_len - f_p->lo_eol_i - 1;
 	return (line);
 }
 
@@ -207,7 +159,7 @@ char	*get_next_line(int fd)
 	{
 		f.lo_eol_i = find_eobl(f.leftover, 0);
 		if (f.lo_eol_i != -1) // leftoverに改行文字があれば、
-			return (gnl_split(&f.leftover)); // leftoverから、改行文字で切って、lineと新leftoverに分け、lineを返す
+			return (gnl_split(&f)); // leftoverから、改行文字で切って、lineと新leftoverに分け、lineを返す
 		f.readbuff = (char *)malloc(BUFFER_SIZE + 1);
 		if (f.readbuff == NULL)
 			return (gnl_free(&f.leftover, NULL, NULL, 0));
