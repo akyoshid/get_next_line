@@ -92,7 +92,6 @@ char	*gnl_strjoin(t_fd *f_p)
 	char	*buff;
 
 	f_p->lo_len = find_eobl(f_p->leftover, 1);
-	// f_p->rb_len = find_eobl(f_p->readbuff, 1);
 	if (f_p->lo_len == -1)
 		f_p->lo_len = 0;
 	buff = (char *)malloc(f_p->lo_len + f_p->rb_len + 1);
@@ -104,7 +103,7 @@ char	*gnl_strjoin(t_fd *f_p)
 	gnl_free(&f_p->leftover, &f_p->readbuff, NULL, 0);
 	f_p->leftover = buff;
 	f_p->lo_len += f_p->rb_len;
-	return (buff);
+	return (f_p->leftover);
 }
 
 // === RETURN VALUE ===
