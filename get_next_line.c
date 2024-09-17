@@ -6,7 +6,7 @@
 /*   By: akyoshid <akyoshid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/02 22:57:05 by akyoshid          #+#    #+#             */
-/*   Updated: 2024/09/18 04:20:22 by akyoshid         ###   ########.fr       */
+/*   Updated: 2024/09/18 04:28:18 by akyoshid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,13 +87,12 @@ void	*ft_memcpy(void *dst, const void *src, ssize_t n)
 // - Join even if (leftover == NULL).
 // - Free leftover and read_buff after joining.
 // - When malloc was failed, return NULL.
-
 char	*gnl_strjoin(t_fd *f_p)
 {
 	char	*buff;
 
 	f_p->lo_len = find_eobl(f_p->leftover, 1);
-	f_p->rb_len = find_eobl(f_p->readbuff, 1);
+	// f_p->rb_len = find_eobl(f_p->readbuff, 1);
 	if (f_p->lo_len == -1)
 		f_p->lo_len = 0;
 	buff = (char *)malloc(f_p->lo_len + f_p->rb_len + 1);
@@ -151,7 +150,6 @@ char	*gnl_split(t_fd *f_p)
 char	*get_next_line(int fd)
 {
 	static t_fd	f;
-	ssize_t		read_rv;
 
 	if (fd < 0 || BUFFER_SIZE <= 0)
 		return (NULL);
@@ -163,13 +161,12 @@ char	*get_next_line(int fd)
 		f.readbuff = (char *)malloc(BUFFER_SIZE + 1);
 		if (f.readbuff == NULL)
 			return (gnl_free(&f.leftover, NULL, NULL, 0));
-		read_rv = read(fd, f.readbuff, BUFFER_SIZE);
-		if (read_rv == -1) // read失敗
+		f.rb_len = read(fd, f.readbuff, BUFFER_SIZE);
+		if (f.rb_len == -1) // read失敗
 			return (gnl_free(&f.leftover, &f.readbuff, NULL, 0));
-		if (read_rv == 0) // readするものがないかつ、leftoverもない、または'\n'を含まないleftoverはある場合
+		else if (f.rb_len == 0) // readするものがないかつ、leftoverもない、または'\n'を含まないleftoverはある場合
 			return (gnl_free(&f.leftover, &f.readbuff, f.leftover, 1)); //🔥🔥BONUS:読み切ったらノードもfreeしないといけない
-		f.readbuff[read_rv] = EOB;
-		if (gnl_strjoin(&f) == NULL) // 旧leftover、read_buffはfreeされる。
+		else if (gnl_strjoin(&f) == NULL) // 旧leftover、read_buffはfreeされる。
 			return (NULL);
 	}
 }
