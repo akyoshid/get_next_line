@@ -62,6 +62,25 @@ char	*gnl_free(char **pp1, char **pp2, char *return_value, int last_wo_eol)
 	return (return_value);
 }
 
+void	*ft_memcpy(void *dst, const void *src, ssize_t n)
+{
+	unsigned char	*dst_ptr;
+	unsigned char	*src_ptr;
+	ssize_t			i;
+
+	if (dst == NULL && src == NULL)
+		return (NULL);
+	dst_ptr = (unsigned char *)dst;
+	src_ptr = (unsigned char *)src;
+	i = 0;
+	while (i < n)
+	{
+		dst_ptr[i] = src_ptr[i];
+		i++;
+	}
+	return (dst);
+}
+
 // === DESCRIPTION ===
 // - Allocates and returns a new string by combining 'leftover' and 'read_buff'.
 // - lo_p will be passed &leftover, rb_p will be passed &read_buff.
