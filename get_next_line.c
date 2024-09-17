@@ -6,13 +6,13 @@
 /*   By: akyoshid <akyoshid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/02 22:57:05 by akyoshid          #+#    #+#             */
-/*   Updated: 2024/09/17 21:37:23 by akyoshid         ###   ########.fr       */
+/*   Updated: 2024/09/18 00:22:17 by akyoshid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-char const	g_eob = EOB;
+// char const	g_eob = EOB;
 
 // Return the index of first EOB(-1) or EOL('\n') in `str`.
 // This function requires that `str` is terminated with EOB!!!
@@ -87,28 +87,65 @@ void	*ft_memcpy(void *dst, const void *src, ssize_t n)
 // - Join even if (leftover == NULL).
 // - Free leftover and read_buff after joining.
 // - When malloc was failed, return NULL.
-char	*gnl_strjoin(char **lo_p, char **rb_p)
+
+char	*gnl_strjoin(t_fd *f_p)
 {
 	char	*buff;
-	char	*lo_temp;
-	char	*rb_temp;
-	ssize_t	i;
 
-	lo_temp = *lo_p;
-	rb_temp = *rb_p;
-	if (lo_temp == NULL)
-		lo_temp = (char *)&g_eob;
-	buff = (char *)malloc((find_eobl(lo_temp, 1) + find_eobl(rb_temp, 1) + 1));
+	f_p->lo_len = find_eobl(f_p->leftover, 1);
+	f_p->rb_len = find_eobl(f_p->readbuff, 1);
+	if (f_p->lo_len == -1)
+		f_p->lo_len = 0;
+	buff = (char *)malloc(f_p->lo_len + f_p->rb_len + 1);
 	if (buff == NULL)
-		return (gnl_free(lo_p, rb_p, NULL, 0));
-	i = 0;
-	while (*lo_temp != EOB)
-		buff[i++] = *(lo_temp++);
-	while (*rb_temp != EOB)
-		buff[i++] = *(rb_temp++);
-	buff[i] = EOB;
-	return (gnl_free(lo_p, rb_p, buff, 0));
+		return (gnl_free(&f_p->leftover, &f_p->readbuff, NULL, 0));
+	ft_memcpy(buff, f_p->leftover, f_p->lo_len);
+	ft_memcpy(buff + f_p->lo_len, f_p->readbuff, f_p->rb_len);
+	buff[f_p->lo_len + f_p->rb_len] = EOB;
+	return (gnl_free(&f_p->leftover, &f_p->readbuff, buff, 0));
 }
+
+// char	*gnl_strjoin(char **lo_p, char **rb_p)
+// {
+// 	char	*buff;
+// 	ssize_t	lo_len;
+// 	ssize_t	rb_len;
+
+// 	lo_len = find_eobl(*lo_p, 1);;
+// 	rb_len = find_eobl(*rb_p, 1);
+// 	if (lo_len == -1)
+// 		lo_len = 0;
+// 	buff = (char *)malloc(lo_len + rb_len + 1);
+// 	if (buff == NULL)
+// 		return (gnl_free(lo_p, rb_p, NULL, 0));
+// 	ft_memcpy(buff, *lo_p, lo_len);
+// 	ft_memcpy(buff + lo_len, *rb_p, rb_len);
+// 	buff[lo_len + rb_len] = EOB;
+// 	return (gnl_free(lo_p, rb_p, buff, 0));
+// }
+
+// char *gnl_strjoin(char **lo_p, char **rb_p)
+// {
+// 	char	*buff;
+// 	char	*lo_temp;
+// 	char	*rb_temp;
+// 	ssize_t	i;
+
+// 	lo_temp = *lo_p;
+// 	rb_temp = *rb_p;
+// 	if (lo_temp == NULL)
+// 		lo_temp = (char *)&g_eob;
+// 	buff = (char *)malloc((find_eobl(lo_temp, 1) + find_eobl(rb_temp, 1) + 1));
+// 	if (buff == NULL)
+// 		return (gnl_free(lo_p, rb_p, NULL, 0));
+// 	i = 0;
+// 	while (*lo_temp != EOB)
+// 		buff[i++] = *(lo_temp++);
+// 	while (*rb_temp != EOB)
+// 		buff[i++] = *(rb_temp++);
+// 	buff[i] = EOB;
+// 	return (gnl_free(lo_p, rb_p, buff, 0));
+// }
 
 // === RETURN VALUE ===
 // Return a string that extracts from leftover to the first '\n'.
@@ -177,7 +214,7 @@ char	*get_next_line(int fd)
 		if (read_rv == 0) // readするものがないかつ、leftoverもない、または'\n'を含まないleftoverはある場合
 			return (gnl_free(&f.leftover, &f.readbuff, f.leftover, 1));
 		f.readbuff[read_rv] = EOB;
-		f.leftover = gnl_strjoin(&f.leftover, &f.readbuff); //旧leftover、read_buffはfreeされる。
+		f.leftover = gnl_strjoin(&f); // 旧leftover、read_buffはfreeされる。//🔥関数内で代入することで1行短くできる
 		if (f.leftover == NULL)
 			return (NULL);
 	}
