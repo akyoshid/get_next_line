@@ -6,7 +6,7 @@
 /*   By: akyoshid <akyoshid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/02 22:57:05 by akyoshid          #+#    #+#             */
-/*   Updated: 2024/09/17 04:11:42 by akyoshid         ###   ########.fr       */
+/*   Updated: 2024/09/17 21:37:23 by akyoshid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,7 @@ char	*gnl_free(char **pp1, char **pp2, char *return_value, int last_wo_eol)
 {
 	if (pp1 != NULL)
 	{
-		if (last_wo_eol == 1)
+		if (last_wo_eol == 1 && *pp1 != NULL)
 			(*pp1)[find_eobl(*pp1, 1)] = '\0';
 		else
 			free(*pp1);
@@ -146,15 +146,16 @@ char	*get_next_line(int fd)
 		return (NULL);
 	while (1)
 	{
-		if (find_eobl(f.leftover, 0) != -1) // leftoverに改行文字があれば、
+		f.lo_eol_i = find_eobl(f.leftover, 0);
+		if (f.lo_eol_i != -1) // leftoverに改行文字があれば、
 			return (gnl_split(&f.leftover)); // leftoverから、改行文字で切って、lineと新leftoverに分け、lineを返す
 		f.readbuff = (char *)malloc(BUFFER_SIZE + 1);
 		if (f.readbuff == NULL)
 			return (gnl_free(&f.leftover, NULL, NULL, 0));
 		read_rv = read(fd, f.readbuff, BUFFER_SIZE);
-		if (read_rv == -1 || (read_rv == 0 && f.leftover == NULL)) //read失敗 || readするものがなくleftoverもない
+		if (read_rv == -1) // read失敗
 			return (gnl_free(&f.leftover, &f.readbuff, NULL, 0));
-		if (read_rv == 0) // readするものがないが、('\n'は含まれていない)leftoverはある場合
+		if (read_rv == 0) // readするものがないかつ、leftoverもない、または'\n'を含まないleftoverはある場合
 			return (gnl_free(&f.leftover, &f.readbuff, f.leftover, 1));
 		f.readbuff[read_rv] = EOB;
 		f.leftover = gnl_strjoin(&f.leftover, &f.readbuff); //旧leftover、read_buffはfreeされる。
