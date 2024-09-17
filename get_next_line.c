@@ -121,22 +121,24 @@ char	*gnl_split(t_fd *f_p)
 {
 	char	*line;
 	char	*after_eol;
+	size_t	after_eol_len;
 
 	line = (char *)malloc((f_p->lo_eol_i + 2));
 	if (line == NULL)
 		return (gnl_free(&f_p->leftover, NULL, NULL, 0));
 	ft_memcpy(line, f_p->leftover, f_p->lo_eol_i + 1);
 	line[f_p->lo_eol_i + 1] = '\0';
-	if (f_p->leftover[f_p->lo_eol_i + 1] == EOB) // leftoverが全てlineに入った時の処理：空のleftoverは、空の文字列ではなく、NULLで表現する。テキストファイルに空の文字列という状態は存在しない。
+	if (f_p->leftover[f_p->lo_eol_i + 1] == EOB)
 		return (gnl_free(&f_p->leftover, NULL, line, 0));
-	after_eol = (char *)malloc(f_p->lo_len - f_p->lo_eol_i);
+	after_eol_len = f_p->lo_len - f_p->lo_eol_i - 1;
+	after_eol = (char *)malloc(after_eol_len + 1);
 	if (after_eol == NULL)
 		return (gnl_free(&f_p->leftover, &line, NULL, 0));
-	ft_memcpy(after_eol, f_p->leftover + f_p->lo_eol_i + 1, f_p->lo_len - f_p->lo_eol_i - 1);
-	after_eol[f_p->lo_len - f_p->lo_eol_i - 1] = EOB;
+	ft_memcpy(after_eol, f_p->leftover + f_p->lo_eol_i + 1, after_eol_len);
+	after_eol[after_eol_len] = EOB;
 	free(f_p->leftover);
 	f_p->leftover = after_eol;
-	f_p->lo_len = f_p->lo_len - f_p->lo_eol_i - 1;
+	f_p->lo_len = after_eol_len;
 	return (line);
 }
 
