@@ -12,26 +12,19 @@
 
 #include "get_next_line.h"
 
-// Return the index of first EOB(-1) or EOL('\n') in `str`.
-// This function requires that `str` is terminated with EOB!!!
-// If `str` is NULL, return -1.
-// If there is no EOL('\n') in `str` when it searches EOL, return -1.
-// `is_eob` determines which one to search.
-ssize_t	find_eobl(char *str, int is_eob)
+// ### RETURN VALUE
+// - Return the index of first EOL('\n') in `str`.
+// - If `str` is NULL, return -1.
+// - If there is no EOL('\n') in `str`, return -1.
+// ### ATTENTION
+// - `str` (`leftover`) is guaranteed to be NULL or to be terminated with EOB.
+ssize_t	find_eol(char *str)
 {
 	char	*str_s;
 
 	str_s = str;
 	if (str == NULL)
 		return (-1);
-	if (is_eob == 1)
-	{
-		while (*str != EOB)
-			str++;
-		return (str - str_s);
-	}
-	else
-	{
 		while (*str != EOB)
 		{
 			if (*str == '\n')
@@ -40,7 +33,6 @@ ssize_t	find_eobl(char *str, int is_eob)
 		}
 		return (-1);
 	}
-}
 
 // 🔥
 // BONUS:読み切ったら、もしくはエラーが生じたら、ノードもfreeしないといけない
@@ -166,7 +158,7 @@ char	*get_next_line(int fd)
 		return (NULL);
 	while (1)
 	{
-		f.lo_eol_i = find_eobl(f.leftover, 0);
+		f.lo_eol_i = find_eol(f.leftover);
 		if (f.lo_eol_i != -1)
 			return (gnl_split(&f));
 		f.readbuff = (char *)malloc(BUFFER_SIZE + 1);
