@@ -6,7 +6,7 @@
 /*   By: akyoshid <akyoshid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/06 19:03:54 by akyoshid          #+#    #+#             */
-/*   Updated: 2024/09/19 00:46:10 by akyoshid         ###   ########.fr       */
+/*   Updated: 2024/09/19 02:23:29 by akyoshid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,5 +44,8 @@ ssize_t	find_eol(char *str);
 char	*gnl_strjoin(t_fd *f_p);
 char	*gnl_split(t_fd *f_p);
 char	*gnl_free(t_fd *f_p, char **p_p, char *return_value);
+void	delete_fd_node(t_fd *f_p);
+t_fd	*new_fd_node(t_fd *last_node, int fd);
+t_fd	*get_fd_node(t_fd *lst, int fd);
 
 #endif

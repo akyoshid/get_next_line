@@ -6,7 +6,7 @@
 /*   By: akyoshid <akyoshid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/06 19:03:17 by akyoshid          #+#    #+#             */
-/*   Updated: 2024/09/19 00:40:29 by akyoshid         ###   ########.fr       */
+/*   Updated: 2024/09/19 05:16:33 by akyoshid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -131,24 +131,28 @@ char	*gnl_split(t_fd *f_p)
 // 5. Join readbuff with leftover & go back to step 1.
 char	*get_next_line(int fd)
 {
-	static t_fd	f;
+	static t_fd	f_lst;
+	t_fd		*f;
 
-	if (fd < 0 || BUFFER_SIZE <= 0)
+	if (BUFFER_SIZE <= 0)
+		return (NULL);
+	f = get_fd_node(&f_lst, fd);
+	if (f == NULL)
 		return (NULL);
 	while (1)
 	{
-		f.lo_eol_i = find_eol(f.leftover);
-		if (f.lo_eol_i != -1)
-			return (gnl_split(&f));
-		f.readbuff = (char *)malloc(BUFFER_SIZE + 1);
-		if (f.readbuff == NULL)
-			return (gnl_free(&f, NULL, NULL));
-		f.rb_len = read(fd, f.readbuff, BUFFER_SIZE);
-		if (f.rb_len == -1 || (f.rb_len == 0 && f.leftover == NULL))
-			return (gnl_free(&f, &f.readbuff, NULL));
-		else if (f.rb_len == 0 && f.leftover != NULL)
-			return (gnl_free(&f, &f.readbuff, f.leftover));
-		else if (gnl_strjoin(&f) == NULL)
+		f->lo_eol_i = find_eol(f->leftover);
+		if (f->lo_eol_i != -1)
+			return (gnl_split(f));
+		f->readbuff = (char *)malloc(BUFFER_SIZE + 1);
+		if (f->readbuff == NULL)
+			return (gnl_free(f, NULL, NULL));
+		f->rb_len = read(fd, f->readbuff, BUFFER_SIZE);
+		if (f->rb_len == -1 || (f->rb_len == 0 && f->leftover == NULL))
+			return (gnl_free(f, &f->readbuff, NULL));
+		else if (f->rb_len == 0 && f->leftover != NULL)
+			return (gnl_free(f, &f->readbuff, f->leftover));
+		else if (gnl_strjoin(f) == NULL)
 			return (NULL);
 	}
 }
