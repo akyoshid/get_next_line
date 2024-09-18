@@ -104,8 +104,10 @@ char	*gnl_strjoin(t_fd *f_p)
 	ft_memcpy(buff, f_p->leftover, f_p->lo_len);
 	ft_memcpy(buff + f_p->lo_len, f_p->readbuff, f_p->rb_len);
 	buff[f_p->lo_len + f_p->rb_len] = EOB;
-	gnl_free(f_p, &f_p->readbuff, NULL, 0);
+	free(f_p->leftover);
+	free(f_p->readbuff);
 	f_p->leftover = buff;
+	f_p->readbuff = NULL;
 	f_p->lo_len += f_p->rb_len;
 	return (f_p->leftover);
 }
