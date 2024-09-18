@@ -6,7 +6,7 @@
 /*   By: akyoshid <akyoshid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/02 22:57:08 by akyoshid          #+#    #+#             */
-/*   Updated: 2024/09/19 00:32:58 by akyoshid         ###   ########.fr       */
+/*   Updated: 2024/09/19 01:39:06 by akyoshid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@
 // - `p_p` will receive `&readbuff`, `&line`, or NULL.
 // ### RETURN VALUE
 // - Return `return_value`.
-// ## ATTENTION
+// ### ATTENTION
 // - It is guaranteed that `leftover` passed to `return_value` is not NULL.
 char	*gnl_free(t_fd *f_p, char **p_p, char *return_value)
 {
