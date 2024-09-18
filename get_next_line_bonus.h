@@ -28,14 +28,14 @@
 
 typedef struct s_fd
 {
-	int		fd;
-	char	*leftover;
-	ssize_t	lo_len;
-	ssize_t	lo_eol_i;
-	char	*readbuff;
-	ssize_t	rb_len;
-	t_fd	*prev;
-	t_fd	*next;
+	int			fd;
+	char		*leftover;
+	ssize_t		lo_len;
+	ssize_t		lo_eol_i;
+	char		*readbuff;
+	ssize_t		rb_len;
+	struct s_fd	*prev;
+	struct s_fd	*next;
 }	t_fd;
 
 char	*get_next_line(int fd);
