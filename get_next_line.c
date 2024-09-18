@@ -55,6 +55,7 @@ char	*gnl_free(t_fd *f_p, char **p_p, char *return_value, int last_wo_eol)
 		else
 			free(f_p->leftover);
 		f_p->leftover = NULL;
+		f_p->lo_len = 0;
 	}
 	if (p_p != NULL)
 	{
