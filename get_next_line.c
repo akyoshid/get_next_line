@@ -6,7 +6,7 @@
 /*   By: akyoshid <akyoshid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/02 22:57:05 by akyoshid          #+#    #+#             */
-/*   Updated: 2024/09/18 21:59:42 by akyoshid         ###   ########.fr       */
+/*   Updated: 2024/09/19 00:22:26 by akyoshid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,15 +25,22 @@ ssize_t	find_eol(char *str)
 	str_s = str;
 	if (str == NULL)
 		return (-1);
-		while (*str != EOB)
-		{
-			if (*str == '\n')
-				return (str - str_s);
-			str++;
-		}
-		return (-1);
+	while (*str != EOB)
+	{
+		if (*str == '\n')
+			return (str - str_s);
+		str++;
 	}
+	return (-1);
+}
 
+// ### DESCRIPTION
+// - Free `f_p->leftover` and `*p_p`, and assign NULL.
+// - `p_p` will receive `&readbuff`, `&line`, or NULL.
+// ### RETURN VALUE
+// - Return `return_value`.
+// ## ATTENTION
+// - It is guaranteed that `leftover` passed to `return_value` is not NULL.
 char	*gnl_free(t_fd *f_p, char **p_p, char *return_value)
 {
 	if (f_p != NULL)
@@ -72,13 +79,14 @@ void	*ft_memcpy(void *dst, const void *src, ssize_t n)
 	return (dst);
 }
 
-// === DESCRIPTION ===
+// ### DESCRIPTION
 // - Allocate & return new string by combining 'leftover' and 'read_buff'.
 // - The string is terminated by EOB.
 // - Join even if (leftover == NULL).
 // - Free old leftover and read_buff after joining.
 // - Store new string in leftover.
 // - Store the length of new string in lo_len;
+// ### RETURN VALUE
 // - When malloc was failed, return NULL.
 char	*gnl_strjoin(t_fd *f_p)
 {
@@ -98,17 +106,18 @@ char	*gnl_strjoin(t_fd *f_p)
 	return (f_p->leftover);
 }
 
-// === DESCRIPTION ===
+// ### DESCRIPTION
 // - Return the string up to first '\n' from leftover.
 // - The string is null-terminated.
 // - Also, store remaining string after first '\n' into leftover.
 // - The string is terminated by EOB.
+// - If there is no string after EOL in leftover,
+// it process the leftover with gnl_free and return it.
+// ### RETURN VALUE
 // - When malloc was failed, return NULL.
+// ### ATTENTION
 // - The leftover processed by this function is guaranteed
 // to be not NULL & to contain '\n'.
-// - When entire leftover is stored in line,
-// that is, when the new leftover becomes empty,
-// store NULL, not empty string.
 char	*gnl_split(t_fd *f_p)
 {
 	char	*line;
@@ -134,18 +143,18 @@ char	*gnl_split(t_fd *f_p)
 	return (line);
 }
 
-// === RETURN VALUE ===
+// ### RETURN VALUE
 // - Return one line.
-// - If there is no strings to read in fd, return NULL.
+// - If there is nothing else to read in fd, return NULL.
 // - If an error occurs, return NULL.
-// - When NULL is returned, the file descriptor should be closed,
-// so if an error occurs, all heap memory are freed.
-// === DESCRIPTION ===
+// - When it returns NULL, all heap memory are freed.
+// Because `fd` should be closed by the caller of this function in that case.
+// ### DESCRIPTION
 // 1. Find for '\n' in leftover.
 // 2. If there is '\n', split and return the string up to '\n'.
 // 3. If there is no '\n', read from fd.
 // 4. If there is nothing else to read, return leftover.
-// 5. Join readbuff with leftover and back to step 1.
+// 5. Join readbuff with leftover & go back to step 1.
 char	*get_next_line(int fd)
 {
 	static t_fd	f;
