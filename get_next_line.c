@@ -96,9 +96,6 @@ char	*gnl_strjoin(t_fd *f_p)
 {
 	char	*buff;
 
-	f_p->lo_len = find_eobl(f_p->leftover, 1); // 🔥
-	if (f_p->lo_len == -1)
-		f_p->lo_len = 0;
 	buff = (char *)malloc(f_p->lo_len + f_p->rb_len + 1);
 	if (buff == NULL)
 		return (gnl_free(f_p, &f_p->readbuff, NULL, 0));
