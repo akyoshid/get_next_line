@@ -6,7 +6,7 @@
 /*   By: akyoshid <akyoshid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/02 22:57:05 by akyoshid          #+#    #+#             */
-/*   Updated: 2024/09/18 05:40:59 by akyoshid         ###   ########.fr       */
+/*   Updated: 2024/09/18 21:37:26 by akyoshid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ ssize_t	find_eobl(char *str, int is_eob)
 	str_s = str;
 	if (str == NULL)
 		return (-1);
-	else if (is_eob == 1)
+	if (is_eob == 1)
 	{
 		while (*str != EOB)
 			str++;
@@ -43,22 +43,23 @@ ssize_t	find_eobl(char *str, int is_eob)
 }
 
 // 🔥
-// readするものがないかつ、leftoverもない、または'\n'を含まないleftoverはある場合
 // BONUS:読み切ったら、もしくはエラーが生じたら、ノードもfreeしないといけない
-char	*gnl_free(char **pp1, char **pp2, char *return_value, int last_wo_eol)
+// - `f_p->leftover`と`*p_p`をfreeし、NULLを代入する
+// - '*p_p'には、readbuffやlineや、NULLが渡される。
+char	*gnl_free(t_fd *f_p, char **p_p, char *return_value, int last_wo_eol)
 {
-	if (pp1 != NULL)
+	if (f_p != NULL)
 	{
 		if (last_wo_eol == 1)
-			(*pp1)[find_eobl(*pp1, 1)] = '\0';
+			f_p->leftover[f_p->lo_len] = '\0';
 		else
-			free(*pp1);
-		*pp1 = NULL;
+			free(f_p->leftover);
+		f_p->leftover = NULL;
 	}
-	if (pp2 != NULL)
+	if (p_p != NULL)
 	{
-		free(*pp2);
-		*pp2 = NULL;
+		free(*p_p);
+		*p_p = NULL;
 	}
 	return (return_value);
 }
@@ -94,16 +95,16 @@ char	*gnl_strjoin(t_fd *f_p)
 {
 	char	*buff;
 
-	f_p->lo_len = find_eobl(f_p->leftover, 1);
+	f_p->lo_len = find_eobl(f_p->leftover, 1); // 🔥
 	if (f_p->lo_len == -1)
 		f_p->lo_len = 0;
 	buff = (char *)malloc(f_p->lo_len + f_p->rb_len + 1);
 	if (buff == NULL)
-		return (gnl_free(&f_p->leftover, &f_p->readbuff, NULL, 0));
+		return (gnl_free(f_p, &f_p->readbuff, NULL, 0));
 	ft_memcpy(buff, f_p->leftover, f_p->lo_len);
 	ft_memcpy(buff + f_p->lo_len, f_p->readbuff, f_p->rb_len);
 	buff[f_p->lo_len + f_p->rb_len] = EOB;
-	gnl_free(&f_p->leftover, &f_p->readbuff, NULL, 0);
+	gnl_free(f_p, &f_p->readbuff, NULL, 0);
 	f_p->leftover = buff;
 	f_p->lo_len += f_p->rb_len;
 	return (f_p->leftover);
@@ -128,15 +129,15 @@ char	*gnl_split(t_fd *f_p)
 
 	line = (char *)malloc((f_p->lo_eol_i + 2));
 	if (line == NULL)
-		return (gnl_free(&f_p->leftover, NULL, NULL, 0));
+		return (gnl_free(f_p, NULL, NULL, 0));
 	ft_memcpy(line, f_p->leftover, f_p->lo_eol_i + 1);
 	line[f_p->lo_eol_i + 1] = '\0';
 	if (f_p->leftover[f_p->lo_eol_i + 1] == EOB)
-		return (gnl_free(&f_p->leftover, NULL, line, 0));
+		return (gnl_free(f_p, NULL, line, 0));
 	after_eol_len = f_p->lo_len - f_p->lo_eol_i - 1;
 	after_eol = (char *)malloc(after_eol_len + 1);
 	if (after_eol == NULL)
-		return (gnl_free(&f_p->leftover, &line, NULL, 0));
+		return (gnl_free(f_p, &line, NULL, 0));
 	ft_memcpy(after_eol, f_p->leftover + f_p->lo_eol_i + 1, after_eol_len);
 	after_eol[after_eol_len] = EOB;
 	free(f_p->leftover);
@@ -170,12 +171,12 @@ char	*get_next_line(int fd)
 			return (gnl_split(&f));
 		f.readbuff = (char *)malloc(BUFFER_SIZE + 1);
 		if (f.readbuff == NULL)
-			return (gnl_free(&f.leftover, NULL, NULL, 0));
+			return (gnl_free(&f, NULL, NULL, 0));
 		f.rb_len = read(fd, f.readbuff, BUFFER_SIZE);
 		if (f.rb_len == -1 || (f.rb_len == 0 && f.leftover == NULL))
-			return (gnl_free(&f.leftover, &f.readbuff, NULL, 0));
+			return (gnl_free(&f, &f.readbuff, NULL, 0));
 		else if (f.rb_len == 0 && f.leftover != NULL)
-			return (gnl_free(&f.leftover, &f.readbuff, f.leftover, 1));
+			return (gnl_free(&f, &f.readbuff, f.leftover, 1));
 		else if (gnl_strjoin(&f) == NULL)
 			return (NULL);
 	}
