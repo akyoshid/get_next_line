@@ -6,7 +6,7 @@
 /*   By: akyoshid <akyoshid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/02 22:57:05 by akyoshid          #+#    #+#             */
-/*   Updated: 2024/09/18 21:37:26 by akyoshid         ###   ########.fr       */
+/*   Updated: 2024/09/18 21:59:42 by akyoshid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -127,13 +127,13 @@ char	*gnl_split(t_fd *f_p)
 	char	*after_eol;
 	size_t	after_eol_len;
 
+	if (f_p->leftover[f_p->lo_eol_i + 1] == EOB)
+		return (gnl_free(f_p, NULL, f_p->leftover, 1));
 	line = (char *)malloc((f_p->lo_eol_i + 2));
 	if (line == NULL)
 		return (gnl_free(f_p, NULL, NULL, 0));
 	ft_memcpy(line, f_p->leftover, f_p->lo_eol_i + 1);
 	line[f_p->lo_eol_i + 1] = '\0';
-	if (f_p->leftover[f_p->lo_eol_i + 1] == EOB)
-		return (gnl_free(f_p, NULL, line, 0));
 	after_eol_len = f_p->lo_len - f_p->lo_eol_i - 1;
 	after_eol = (char *)malloc(after_eol_len + 1);
 	if (after_eol == NULL)
