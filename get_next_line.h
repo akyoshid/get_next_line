@@ -6,7 +6,7 @@
 /*   By: akyoshid <akyoshid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/02 22:57:02 by akyoshid          #+#    #+#             */
-/*   Updated: 2024/09/19 00:28:01 by akyoshid         ###   ########.fr       */
+/*   Updated: 2024/09/19 00:35:09 by akyoshid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,5 +36,10 @@ typedef struct s_fd
 }	t_fd;
 
 char	*get_next_line(int fd);
+void	*ft_memcpy(void *dst, const void *src, ssize_t n);
+ssize_t	find_eol(char *str);
+char	*gnl_strjoin(t_fd *f_p);
+char	*gnl_split(t_fd *f_p);
+char	*gnl_free(t_fd *f_p, char **p_p, char *return_value);
 
 #endif

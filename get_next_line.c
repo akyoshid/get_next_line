@@ -6,11 +6,30 @@
 /*   By: akyoshid <akyoshid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/02 22:57:05 by akyoshid          #+#    #+#             */
-/*   Updated: 2024/09/19 00:22:26 by akyoshid         ###   ########.fr       */
+/*   Updated: 2024/09/19 00:32:50 by akyoshid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
+
+void	*ft_memcpy(void *dst, const void *src, ssize_t n)
+{
+	unsigned char	*dst_ptr;
+	unsigned char	*src_ptr;
+	ssize_t			i;
+
+	if (dst == NULL && src == NULL)
+		return (NULL);
+	dst_ptr = (unsigned char *)dst;
+	src_ptr = (unsigned char *)src;
+	i = 0;
+	while (i < n)
+	{
+		dst_ptr[i] = src_ptr[i];
+		i++;
+	}
+	return (dst);
+}
 
 // ### RETURN VALUE
 // - Return the index of first EOL('\n') in `str`.
@@ -32,51 +51,6 @@ ssize_t	find_eol(char *str)
 		str++;
 	}
 	return (-1);
-}
-
-// ### DESCRIPTION
-// - Free `f_p->leftover` and `*p_p`, and assign NULL.
-// - `p_p` will receive `&readbuff`, `&line`, or NULL.
-// ### RETURN VALUE
-// - Return `return_value`.
-// ## ATTENTION
-// - It is guaranteed that `leftover` passed to `return_value` is not NULL.
-char	*gnl_free(t_fd *f_p, char **p_p, char *return_value)
-{
-	if (f_p != NULL)
-	{
-		if (return_value != NULL)
-			f_p->leftover[f_p->lo_len] = '\0';
-		else
-			free(f_p->leftover);
-		f_p->leftover = NULL;
-		f_p->lo_len = 0;
-	}
-	if (p_p != NULL)
-	{
-		free(*p_p);
-		*p_p = NULL;
-	}
-	return (return_value);
-}
-
-void	*ft_memcpy(void *dst, const void *src, ssize_t n)
-{
-	unsigned char	*dst_ptr;
-	unsigned char	*src_ptr;
-	ssize_t			i;
-
-	if (dst == NULL && src == NULL)
-		return (NULL);
-	dst_ptr = (unsigned char *)dst;
-	src_ptr = (unsigned char *)src;
-	i = 0;
-	while (i < n)
-	{
-		dst_ptr[i] = src_ptr[i];
-		i++;
-	}
-	return (dst);
 }
 
 // ### DESCRIPTION
