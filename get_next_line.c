@@ -49,7 +49,7 @@ char	*gnl_free(char **pp1, char **pp2, char *return_value, int last_wo_eol)
 {
 	if (pp1 != NULL)
 	{
-		if (last_wo_eol == 1 && *pp1 != NULL)
+		if (last_wo_eol == 1)
 			(*pp1)[find_eobl(*pp1, 1)] = '\0';
 		else
 			free(*pp1);
@@ -172,9 +172,9 @@ char	*get_next_line(int fd)
 		if (f.readbuff == NULL)
 			return (gnl_free(&f.leftover, NULL, NULL, 0));
 		f.rb_len = read(fd, f.readbuff, BUFFER_SIZE);
-		if (f.rb_len == -1)
+		if (f.rb_len == -1 || (f.rb_len == 0 && f.leftover == NULL))
 			return (gnl_free(&f.leftover, &f.readbuff, NULL, 0));
-		else if (f.rb_len == 0)
+		else if (f.rb_len == 0 && f.leftover != NULL)
 			return (gnl_free(&f.leftover, &f.readbuff, f.leftover, 1));
 		else if (gnl_strjoin(&f) == NULL)
 			return (NULL);
