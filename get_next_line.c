@@ -34,15 +34,11 @@ ssize_t	find_eol(char *str)
 		return (-1);
 	}
 
-// 🔥
-// BONUS:読み切ったら、もしくはエラーが生じたら、ノードもfreeしないといけない
-// - `f_p->leftover`と`*p_p`をfreeし、NULLを代入する
-// - '*p_p'には、readbuffやlineや、NULLが渡される。
-char	*gnl_free(t_fd *f_p, char **p_p, char *return_value, int last_wo_eol)
+char	*gnl_free(t_fd *f_p, char **p_p, char *return_value)
 {
 	if (f_p != NULL)
 	{
-		if (last_wo_eol == 1)
+		if (return_value != NULL)
 			f_p->leftover[f_p->lo_len] = '\0';
 		else
 			free(f_p->leftover);
@@ -90,7 +86,7 @@ char	*gnl_strjoin(t_fd *f_p)
 
 	buff = (char *)malloc(f_p->lo_len + f_p->rb_len + 1);
 	if (buff == NULL)
-		return (gnl_free(f_p, &f_p->readbuff, NULL, 0));
+		return (gnl_free(f_p, &f_p->readbuff, NULL));
 	ft_memcpy(buff, f_p->leftover, f_p->lo_len);
 	ft_memcpy(buff + f_p->lo_len, f_p->readbuff, f_p->rb_len);
 	buff[f_p->lo_len + f_p->rb_len] = EOB;
@@ -120,16 +116,16 @@ char	*gnl_split(t_fd *f_p)
 	size_t	after_eol_len;
 
 	if (f_p->leftover[f_p->lo_eol_i + 1] == EOB)
-		return (gnl_free(f_p, NULL, f_p->leftover, 1));
+		return (gnl_free(f_p, NULL, f_p->leftover));
 	line = (char *)malloc((f_p->lo_eol_i + 2));
 	if (line == NULL)
-		return (gnl_free(f_p, NULL, NULL, 0));
+		return (gnl_free(f_p, NULL, NULL));
 	ft_memcpy(line, f_p->leftover, f_p->lo_eol_i + 1);
 	line[f_p->lo_eol_i + 1] = '\0';
 	after_eol_len = f_p->lo_len - f_p->lo_eol_i - 1;
 	after_eol = (char *)malloc(after_eol_len + 1);
 	if (after_eol == NULL)
-		return (gnl_free(f_p, &line, NULL, 0));
+		return (gnl_free(f_p, &line, NULL));
 	ft_memcpy(after_eol, f_p->leftover + f_p->lo_eol_i + 1, after_eol_len);
 	after_eol[after_eol_len] = EOB;
 	free(f_p->leftover);
@@ -163,12 +159,12 @@ char	*get_next_line(int fd)
 			return (gnl_split(&f));
 		f.readbuff = (char *)malloc(BUFFER_SIZE + 1);
 		if (f.readbuff == NULL)
-			return (gnl_free(&f, NULL, NULL, 0));
+			return (gnl_free(&f, NULL, NULL));
 		f.rb_len = read(fd, f.readbuff, BUFFER_SIZE);
 		if (f.rb_len == -1 || (f.rb_len == 0 && f.leftover == NULL))
-			return (gnl_free(&f, &f.readbuff, NULL, 0));
+			return (gnl_free(&f, &f.readbuff, NULL));
 		else if (f.rb_len == 0 && f.leftover != NULL)
-			return (gnl_free(&f, &f.readbuff, f.leftover, 1));
+			return (gnl_free(&f, &f.readbuff, f.leftover));
 		else if (gnl_strjoin(&f) == NULL)
 			return (NULL);
 	}
